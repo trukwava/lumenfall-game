@@ -15,39 +15,47 @@
   const inside=p=>p.x>=0&&p.y>=0&&p.x<SIZE&&p.y<SIZE;
   const dist=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.y-b.y);
   const copy=o=>JSON.parse(JSON.stringify(o));
+  const CHAMBERS=[
+    {name:'THE SHATTERED PASSAGE',walls:WALLS,enemies:[['skitter',5,6,1],['skitter',6,3,1],['watcher',2,2,2]]},
+    {name:'THE VEILED GALLERY',walls:[[2,1],[2,2],[5,1],[5,2],[2,4],[5,4],[2,5]],enemies:[['skitter',4,6,1],['skitter',6,5,1],['watcher',3,2,2]]},
+    {name:'THE STARLESS ALTAR',walls:[[3,1],[4,1],[2,3],[5,3],[3,4],[4,4],[2,5],[5,5]],enemies:[['skitter',6,6,1],['skitter',5,4,1],['watcher',1,2,2],['watcher',6,2,2]]}
+  ];
+  const RELICS=[
+    {id:'longwick',name:'LONGWICK',symbol:'✧',description:'Lantern range increases by one tile.'},
+    {id:'ashward',name:'ASH WARD',symbol:'◈',description:'Negate the first enemy hit in each later chamber.'},
+    {id:'emberwell',name:'EMBERWELL',symbol:'✦',description:'Restore two points of vital flame immediately.'}
+  ];
   const WALL_SET=new Set(WALLS.map(([x,y])=>`${x},${y}`));
-  const wall=p=>WALL_SET.has(coord(p));
+  const wall=(p,s)=>s?.walls ? s.walls.some(([x,y])=>x===p.x&&y===p.y) : WALL_SET.has(coord(p));
   const add=(p,d)=>({x:p.x+DIRECTIONS[d].x,y:p.y+DIRECTIONS[d].y});
-  const passable=p=>inside(p)&&!wall(p);
+  const passable=(p,s)=>inside(p)&&!wall(p,s);
   const facing=(a,b)=>a.x===b.x?(a.y>b.y?'N':'S'):(a.x>b.x?'W':'E');
+  function spawnEnemies(index){const counts={};return CHAMBERS[index].enemies.map(([kind,x,y,hp])=>{const label=String.fromCharCode(97+(counts[kind]||0));counts[kind]=(counts[kind]||0)+1;return {id:`${kind}-${label}`,kind,x,y,hp,maxHp:hp,lastKnown:kind==='skitter'?{x:1,y:6}:null};});}
   function newGame(){return {
-    version:1,phase:'player',turn:1,ap:MAX_AP,
+    version:2,phase:'player',turn:1,ap:MAX_AP,roomIndex:0,relics:[],ward:0,
+    walls:copy(CHAMBERS[0].walls),
     player:{x:1,y:6,hp:MAX_HP,maxHp:MAX_HP,facing:'E',lantern:true},
-    enemies:[
-      {id:'skitter-a',kind:'skitter',x:5,y:6,hp:1,maxHp:1,lastKnown:{x:1,y:6}},
-      {id:'skitter-b',kind:'skitter',x:6,y:3,hp:1,maxHp:1,lastKnown:{x:1,y:6}},
-      {id:'watcher-a',kind:'watcher',x:2,y:2,hp:2,maxHp:2,lastKnown:null}
-    ]
+    enemies:spawnEnemies(0)
   };}
   function beamCells(s){
     if(!s.player.lantern)return [];
     const p=s.player, cells=[{x:p.x,y:p.y}];
     let cur={x:p.x,y:p.y};
-    for(let i=0;i<BASE_RANGE;i++){
+    for(let i=0;i<BASE_RANGE+(s.relics?.includes('longwick')?1:0);i++){
       cur=add(cur,p.facing);
-      if(!inside(cur)||wall(cur))break;
+      if(!inside(cur)||wall(cur,s))break;
       cells.push(cur);
     }
     return cells;
   }
   function illuminated(s,p){return beamCells(s).some(q=>same(q,p));}
-  function clearLane(a,b,maxRange=5){
+  function clearLane(a,b,maxRange=5,s){
     if(a.x!==b.x&&a.y!==b.y)return false;
     if(dist(a,b)>maxRange||dist(a,b)===0)return false;
     const dir=facing(a,b);let q={x:a.x,y:a.y};
     while(!same(q,b)){
       q=add(q,dir);
-      if(wall(q))return false;
+      if(wall(q,s))return false;
     }
     return true;
   }
@@ -65,7 +73,7 @@
       const cur=queue[index];
       for(const dir of ORDER){
         const p=add(cur.p,dir), key=coord(p);
-        if(visited.has(key)||!passable(p)||occupied(s,p,id))continue;
+        if(visited.has(key)||!passable(p,s)||occupied(s,p,id))continue;
         // Cannot occupy the player's tile; enemies attack it only when adjacent.
         if(same(p,s.player))continue;
         const first=cur.first||p;
@@ -74,7 +82,7 @@
       }
     }
     // Approach a blocked target (e.g. remembered player tile) via nearest adjacent tile.
-    const choices=ORDER.map(d=>add(to,d)).filter(p=>passable(p)&&!occupied(s,p,id)&&!same(p,s.player));
+    const choices=ORDER.map(d=>add(to,d)).filter(p=>passable(p,s)&&!occupied(s,p,id)&&!same(p,s.player));
     const candidates=[];
     for(const goal of choices){
       const step=pathToOpenTile(s,from,goal,id);
@@ -89,13 +97,19 @@
     for(let i=0;i<queue.length;i++){
       for(const dir of ORDER){
         const p=add(queue[i].p,dir),key=coord(p);
-        if(visited.has(key)||!passable(p)||occupied(s,p,id)||same(p,s.player))continue;
+        if(visited.has(key)||!passable(p,s)||occupied(s,p,id)||same(p,s.player))continue;
         const first=queue[i].first||p;
         if(same(p,to))return {first,length:queue[i].length+1};
         visited.add(key);queue.push({p,first,length:queue[i].length+1});
       }
     }
     return null;
+  }
+  function enemyHit(s,events,e,from,target){
+    const blocked=s.ward>0;
+    if(blocked)s.ward--;
+    else s.player.hp=Math.max(0,s.player.hp-1);
+    events.push({type:'enemyAttack',enemyId:e.id,from,target,damage:blocked?0:1,blocked});
   }
   function enemyPhase(source){
     const s=copy(source),events=[];
@@ -105,14 +119,12 @@
       if(s.player.hp<=0)break;
       const from={x:e.x,y:e.y},p={x:s.player.x,y:s.player.y};
       if(dist(e,p)===1){
-        s.player.hp=Math.max(0,s.player.hp-1);
-        events.push({type:'enemyAttack',enemyId:e.id,from,target:p,damage:1});
+        enemyHit(s,events,e,from,p);
         continue;
       }
       if(e.kind==='watcher'){
-        if(s.player.lantern&&clearLane(e,p,5)){
-          s.player.hp=Math.max(0,s.player.hp-1);
-          events.push({type:'enemyAttack',enemyId:e.id,from,target:p,damage:1});
+        if(s.player.lantern&&clearLane(e,p,5,s)){
+          enemyHit(s,events,e,from,p);
         }else events.push({type:'enemyWait',enemyId:e.id,from});
         continue;
       }
@@ -130,6 +142,19 @@
   function reducer(source,action){
     const s=copy(source),events=[];
     const invalid=reason=>({state:source,events:[{type:'invalid',reason}],changed:false});
+    if(s.phase==='reward' && action?.type==='CHOOSE_RELIC'){
+      if(!RELICS.some(r=>r.id===action.id)||s.relics.includes(action.id))return invalid('Choose an available relic.');
+      if(action.id==='emberwell')s.player.hp=Math.min(s.player.maxHp,s.player.hp+2);
+      s.relics.push(action.id);
+      s.roomIndex++;
+      if(s.roomIndex>=CHAMBERS.length)return invalid('No chambers remain.');
+      s.walls=copy(CHAMBERS[s.roomIndex].walls);
+      s.enemies=spawnEnemies(s.roomIndex);
+      Object.assign(s.player,{x:1,y:6,facing:'E',lantern:true});
+      s.ward=s.relics.includes('ashward')?1:0;
+      s.ap=MAX_AP;s.phase='player';
+      return {state:s,events:[{type:'chamberStart',roomIndex:s.roomIndex,relic:action.id}],changed:true};
+    }
     if(s.phase!=='player')return invalid('The encounter is over.');
     if(!action||typeof action.type!=='string')return invalid('Unknown action.');
     if(action.type==='END_TURN'){
@@ -140,7 +165,7 @@
     if(action.type==='MOVE'){
       if(!DIRECTIONS[action.direction])return invalid('Invalid direction.');
       const to=add(s.player,action.direction);
-      if(!passable(to)||occupied(s,to))return invalid('That tile is blocked.');
+      if(!passable(to,s)||occupied(s,to))return invalid('That tile is blocked.');
       s.player.x=to.x;s.player.y=to.y;s.ap--;
       events.push({type:'move',from:{x:source.player.x,y:source.player.y},to,dir:action.direction});
     }else if(action.type==='AIM'){
@@ -155,7 +180,8 @@
       target.hp--;s.ap--;
       events.push({type:'strike',targetId:target.id,to:{x:target.x,y:target.y},killed:target.hp===0});
       if(s.enemies.every(e=>e.hp<=0)){
-        s.phase='won';events.push({type:'victory'});
+        if((s.roomIndex||0)===CHAMBERS.length-1){s.phase='won';events.push({type:'victory'});}
+        else{s.phase='reward';events.push({type:'reward'});}
       }
     }else return invalid('Unknown action.');
     return {state:s,events,changed:true};
@@ -173,11 +199,11 @@
     }
     const result=reducer(session.state,action);
     if(!result.changed){session.message=result.events[0]?.reason||'Action not available.';session.lastEvents=result.events;return false;}
-    if(action.type==='END_TURN')session.history=[];
+    if(action.type==='END_TURN'||action.type==='CHOOSE_RELIC')session.history=[];
     else session.history.push(copy(session.state));
     session.state=result.state;session.lastEvents=result.events;
-    const messages={MOVE:'A quiet step through the ruin.',AIM:'The lantern turns.',TOGGLE_LANTERN:session.state.player.lantern?'The light returns.':'The dark embraces you.',STRIKE:'Radiance cuts through shadow.',END_TURN:'The darkness answers.'};
-    session.message=session.state.phase==='won'?'The observatory remembers the dawn.':session.state.phase==='lost'?'The final ember fades.':messages[action.type];
+    const messages={CHOOSE_RELIC:'A deeper chamber awaits.',MOVE:'A quiet step through the ruin.',AIM:'The lantern turns.',TOGGLE_LANTERN:session.state.player.lantern?'The light returns.':'The dark embraces you.',STRIKE:'Radiance cuts through shadow.',END_TURN:'The darkness answers.'};
+    session.message=session.state.phase==='won'?'The observatory remembers the dawn.':session.state.phase==='lost'?'The final ember fades.':session.state.phase==='reward'?'A relic calls from the darkness.':messages[action.type];
     return true;
   }
   function preview(s){
@@ -190,5 +216,5 @@
       after:result.state
     };
   }
-  return {SIZE,MAX_HP,MAX_AP,BASE_RANGE,DIRECTIONS,WALLS,wall,inside,passable,add,dist,coord,same,copy,newGame,beamCells,illuminated,clearLane,nearestLit,enemyPhase,reducer,makeSession,dispatch,preview};
+  return {SIZE,MAX_HP,MAX_AP,BASE_RANGE,DIRECTIONS,WALLS,CHAMBERS,RELICS,wall,inside,passable,add,dist,coord,same,copy,newGame,beamCells,illuminated,clearLane,nearestLit,enemyPhase,reducer,makeSession,dispatch,preview};
 });
