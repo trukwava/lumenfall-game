@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#090d18" />
-  <meta name="description" content="Lumenfall: four atmospheric chambers of tactical light-and-shadow combat." />
+  <meta name="description" content="Lumenfall: six beautifully atmospheric chambers of turn-based light-and-shadow tactics, culminating in the Eclipse Heart." />
   <title>Lumenfall — The Last Lamplighter</title>
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -58,6 +58,7 @@
             </div>
           </div>
         </div>
+        <p id="boardDescription" class="sr-only" aria-live="polite" aria-atomic="true"></p>
         <div class="board-bottom"><span class="dot gold"></span><span id="statusMessage" aria-live="polite">Your light is the blade. Your shadow is the shield.</span><span class="coordinates" id="sectorLabel">CHAMBER 01 / 06 // 08×08</span></div>
       </section>
       <aside class="sidebar" aria-label="Player status and controls">
@@ -96,7 +97,7 @@
     <h2>Light reveals.<br /><em>Darkness protects.</em></h2>
     <p>Defeat every shadow across six chambers to survive. Choose a relic after clearing each non-final chamber. You have <strong>3 action points</strong> each turn. Move, aim, toggle the lantern or strike for 1 AP each, then end your turn to let enemies act.</p>
     <ul><li><strong>Move:</strong> arrow keys / WASD, or click an adjacent tile.</li><li><strong>Aim:</strong> Shift + arrows, or the four direction buttons.</li><li><strong>Toggle:</strong> L or click the lantern switch. Turning off hides you from distant Watchers.</li><li><strong>Strike:</strong> F or click an illuminated enemy. Only enemies touched by your lantern beam can be struck.</li><li><strong>Rewind:</strong> Z undoes actions before you end the turn.</li><li><strong>Commit:</strong> Enter ends the turn. Red warnings and dotted arrows preview exactly what enemies will do.</li></ul>
-    <div class="codex-line">SKITTERS PURSUE LIGHT. WATCHERS FIRE ALONG CLEAR LANES. ADJACENT FOES ATTACK EVEN IN THE DARK.</div>
+    <div class="codex-line">SKITTERS PURSUE LIGHT. WATCHERS FIRE ALONG CLEAR LANES. THE ECLIPSE HEART PULSES THROUGH WALLS WHEN IT IS CLOSE AND YOU ARE ILLUMINATED. ADJACENT FOES ATTACK EVEN IN THE DARK.</div>
     <button id="closeHelpGold" class="gold-button">I UNDERSTAND <span>✧</span></button>
   </dialog>
   <script src="core.js"></script><script src="game.js"></script>
