@@ -7,10 +7,12 @@ const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const game=fs.readFileSync(path.join(root,'game.js'),'utf8');
 const style=fs.readFileSync(path.join(root,'style.css'),'utf8');
 
-test('HTML loads stylesheet and game scripts in dependency order',()=>{
- assert.match(html,/href="style\.css"/);
- assert.ok(html.indexOf('src="core.js"')<html.indexOf('src="game.js"'));
- assert.ok(html.includes('src="core.js"')&&html.includes('src="game.js"'));
+test('HTML loads matching cache-pinned assets in correct dependency order',()=>{
+ const files=[...html.matchAll(/(?:href|src)="(style\\.css|core\\.js|game\\.js)\\?v=([0-9.]+)"/g)];
+ assert.deepEqual(files.map(m=>m[1]),['style.css','core.js','game.js']);
+ assert.equal(new Set(files.map(m=>m[2])).size,1,'all assets must use the same cache version');
+ assert.match(html,new RegExp('name="lumenfall-build" content="'+files[0][2].replace(/\\./g,'\\\\.')+'"'));
+ assert.ok(html.indexOf('src="core.js')<html.indexOf('src="game.js'));
 });
 
 test('every game.js DOM ID exists in index.html',()=>{
