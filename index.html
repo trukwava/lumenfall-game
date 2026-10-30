@@ -95,6 +95,15 @@
     </div>
     <footer class="footer"><div><span>✦</span> SEEK THE LIGHT. TRUST THE SHADOW.</div><div>WASD / ARROWS MOVE &nbsp;·&nbsp; SHIFT + ARROWS AIM &nbsp;·&nbsp; L TOGGLE &nbsp;·&nbsp; F STRIKE &nbsp;·&nbsp; ENTER COMMIT</div></footer>
   </main>
+  <dialog id="restartDialog" class="help-dialog restart-dialog" aria-label="Confirm new descent">
+    <div class="help-head"><span>REKINDLE YOUR FLAME?</span><button id="cancelRestartX" type="button" aria-label="Cancel restart">✕</button></div>
+    <h2>Begin again?</h2>
+    <p>Your current run, relics, and saved progress will be replaced by a new descent. You can cancel to keep playing.</p>
+    <div class="restart-actions">
+      <button id="cancelRestartBtn" class="plain-button" type="button">KEEP PLAYING</button>
+      <button id="confirmRestartBtn" class="gold-button" type="button">NEW DESCENT <span>↻</span></button>
+    </div>
+  </dialog>
   <dialog id="helpDialog" class="help-dialog" aria-label="How to play">
     <div class="help-head"><span>THE LAMPLIGHTER'S CODEX</span><button id="closeHelp" aria-label="Close instructions">✕</button></div>
     <h2>Light reveals.<br /><em>Darkness protects.</em></h2>
