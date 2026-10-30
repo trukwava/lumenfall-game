@@ -123,6 +123,10 @@ function updateHUD(){
  $('lanternIcon').textContent=p.lantern?'✦':'☾';
  document.querySelector('.lantern-panel').classList.toggle('off',!p.lantern);
  $('toggleBtn').disabled=s.ap<=0||s.phase!=='player';
+ for(const d of ['N','E','S','W']){
+   const dest=C.add(p,d),blocked=!C.passable(dest,s)||s.enemies.some(e=>e.hp>0&&C.same(e,dest));
+   $('move'+d).disabled=s.ap<=0||s.phase!=='player'||blocked;
+ }
  for(const d of ['N','E','S','W']){const b=$('aim'+d);b.classList.toggle('selected',p.facing===d);b.disabled=s.ap<=0||s.phase!=='player'||p.facing===d;}
  $('strikeBtn').disabled=!C.nearestLit(s)||s.ap<=0||s.phase!=='player';
  $('undoBtn').disabled=!session.history.length||s.phase!=='player';
@@ -354,7 +358,10 @@ $('cancelRestartBtn').addEventListener('click',()=>$('restartDialog').close());
 $('cancelRestartX').addEventListener('click',()=>$('restartDialog').close());
 $('confirmRestartBtn').addEventListener('click',()=>{$('restartDialog').close();restart();});
 $('toggleBtn').addEventListener('click',()=>onAction({type:'TOGGLE_LANTERN'}));$('strikeBtn').addEventListener('click',()=>onAction({type:'STRIKE'}));$('undoBtn').addEventListener('click',()=>{if(!started)return;C.dispatch(session,{type:'UNDO'});updateHUD();persistRun();playTone('undo');});$('endBtn').addEventListener('click',()=>onAction({type:'END_TURN'}));
-for(const d of ['N','E','S','W'])$('aim'+d).addEventListener('click',()=>movement(d,true));
+for(const d of ['N','E','S','W']){
+ $('aim'+d).addEventListener('click',()=>movement(d,true));
+ $('move'+d).addEventListener('click',()=>movement(d,false));
+}
 $('soundBtn').addEventListener('click',()=>{soundOn=!soundOn;try{localStorage.setItem('lumenfall-sound',soundOn?'on':'off');}catch{}updateHUD();});
 $('motionBtn').addEventListener('click',()=>{motionOn=!motionOn;try{localStorage.setItem('lumenfall-motion',motionOn?'on':'off');}catch{}updateHUD();});
 function showHelp(){if(!$('helpDialog').open)$('helpDialog').showModal();}function closeHelp(){$('helpDialog').close();}
