@@ -8,6 +8,7 @@ const W=768, G=80, O=64, TAU=Math.PI*2;
 const COLORS={gold:'#f4ca7e',cream:'#fff0be',stone:'#293249',violet:'#ab82d6',danger:'#e57787'};
 let session=C.makeSession(),started=false,hover=null,lastFrame=0,shake=0,particles=[],soundOn=true,motionOn=true;
 const SAVE_KEY='lumenfall-run-v3';
+let cachedPreview=null;
 function readSaved(){
  try {
   const payload=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');
@@ -23,7 +24,7 @@ function persistRun(){
 }
 function updateContinue(){const btn=$('continueBtn');if(btn)btn.hidden=!readSaved();}
 
-try{soundOn=localStorage.getItem('lumenfall-sound')!=='off';motionOn=localStorage.getItem('lumenfall-motion')!=='off';}catch{}
+try{soundOn=localStorage.getItem('lumenfall-sound')!=='off';const choice=localStorage.getItem('lumenfall-motion');motionOn=choice===null?!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches:choice!=='off';}catch{}
 const rgba=(r,g,b,a)=>`rgba(${r},${g},${b},${a})`;
 const centre=p=>({x:O+p.x*G+G/2,y:O+p.y*G+G/2});
 const rect=p=>({x:O+p.x*G,y:O+p.y*G});
@@ -69,7 +70,7 @@ function showReward(){
 }
 function showResult(){const won=session.state.phase==='won';$('resultOverlay').classList.add('visible');$('resultSymbol').textContent=won?'✦':'◈';$('resultEyebrow').textContent=won?'THE SHADOWS ARE SILENT':'THE LANTERN GOES DARK';$('resultTitle').textContent=won?'DAWN RETURNS':'FALLEN';$('resultText').textContent=won?'For one more night, the stars remember their names.':'Even the last flame may be rekindled.';$('resultStat').textContent=`${won?'CLEARED':'SURVIVED'} • TURN ${String(session.state.turn).padStart(2,'0')} • ${session.state.player.hp} FLAME REMAINING`;}
 function updateHUD(){
- const s=session.state,p=s.player,pr=C.preview(s);
+ const s=session.state,p=s.player,pr=C.preview(s);cachedPreview=pr;
  $('turnLabel').textContent=`TURN ${String(s.turn).padStart(2,'0')}`;
  $('chamberLabel').textContent=C.CHAMBERS[s.roomIndex].name;
  $('sectorLabel').textContent=`CHAMBER ${String(s.roomIndex+1).padStart(2,'0')} / ${String(C.CHAMBERS.length).padStart(2,'0')} // 08×08`;
@@ -88,11 +89,13 @@ function updateHUD(){
  $('undoBtn').disabled=!session.history.length||s.phase!=='player';
  $('endBtn').disabled=s.phase!=='player';
  $('statusMessage').textContent=session.message;
+ const visible=s.enemies.filter(e=>e.hp>0);
+ $('boardDescription').textContent=`Chamber ${s.roomIndex+1} of ${C.CHAMBERS.length}. Player column ${p.x+1}, row ${p.y+1}; ${p.hp} health and ${s.ap} action points. Lantern ${p.lantern?'on, facing '+({N:'north',E:'east',S:'south',W:'west'}[p.facing]):'off'}. ${visible.length} foes remain: ${visible.map(e=>`${e.kind} at column ${e.x+1}, row ${e.y+1}, ${e.hp} health`).join('; ')}. Predicted damage on ending turn: ${pr.damage}.`;
  const pretty={skitter:'Skitter',watcher:'Watcher',heart:'Eclipse Heart'},name=e=>pretty[e.kind]||'Shade';
  $('previewList').innerHTML=pr.events.filter(e=>e.type!=='newTurn').map(e=>{
    const enemy=s.enemies.find(q=>q.id===e.enemyId);if(!enemy)return '';
    if(e.type==='enemyAttack')return `<div class="intent ${e.blocked?'wait':'attack'}"><div class="intent-icon">${e.blocked?'◇':'✕'}</div><span><strong>${name(enemy)}</strong> ${e.blocked?'is blocked by Ash Ward':'strikes you for 1'}</span></div>`;
-   if(e.type==='heartPulse')return '';
+   if(e.type==='heartPulse')return `<div class="intent attack"><div class="intent-icon">◉</div><span><strong>Eclipse pulse</strong> ignores walls when you are close and illuminated</span></div>`;
    if(e.type==='enemyMove')return `<div class="intent"><div class="intent-icon">↗</div><span><strong>${name(enemy)}</strong> advances toward ${e.to.x+1},${e.to.y+1}</span></div>`;
    return `<div class="intent wait"><div class="intent-icon">◌</div><span><strong>${name(enemy)}</strong> holds position</span></div>`;
  }).join('')||'<div class="intent wait">No threats remain.</div>';
@@ -180,13 +183,26 @@ function drawPlayer(s,t){const p=s.player,c=centre(p),x=c.x,y=c.y;
  ctx.strokeStyle='#fbdfaa8c';ctx.lineWidth=1;ctx.beginPath();ctx.arc(x,y,30,0,TAU);ctx.stroke();
 }
 function enemyHP(e){if(e.maxHp<2)return;const c=centre(e),sz=12,xx=c.x-((e.maxHp*sz+(e.maxHp-1)*3)/2);for(let j=0;j<e.maxHp;j++){roundRect(xx+j*(sz+3),c.y+29,sz,3,0,j<e.hp?'#eeafbd':'#5a4d68',null);}}
-function drawPreview(s){const pr=C.preview(s);if(s.phase!=='player')return;
+function drawPreview(s,t){const pr=cachedPreview||C.preview(s);if(s.phase!=='player')return;
+ const pulse=pr.events.some(e=>e.type==='heartPulse');
+ if(pulse){
+  const heart=s.enemies.find(e=>e.kind==='heart'&&e.hp>0);
+  if(heart){
+   const origin=centre(heart);
+   ctx.save();
+   ctx.strokeStyle='#f7a1cb';ctx.lineWidth=3;ctx.setLineDash([8,7]);
+   ctx.beginPath();ctx.arc(origin.x,origin.y,G*2+3+(motionOn?Math.sin(t*4)*3:0),0,TAU);ctx.stroke();
+   ctx.fillStyle='rgba(225,97,146,.16)';
+   const target=rect(s.player);ctx.fillRect(target.x+3,target.y+3,G-6,G-6);
+   ctx.restore();
+  }
+ }
  for(const a of pr.actions){
   if(a.type==='enemyMove'){
     const c=centre(a.to),f=centre(a.from);ctx.save();ctx.setLineDash([6,6]);ctx.strokeStyle='#ca99f2c0';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(f.x,f.y);ctx.lineTo(c.x,c.y);ctx.stroke();ctx.beginPath();ctx.arc(c.x,c.y,21,0,TAU);ctx.stroke();ctx.restore();diamond(c.x,c.y,5,'#bd8be49b');
   }
   if(a.type==='enemyAttack'){
-    const c=centre(a.target);ctx.strokeStyle='#f48091';ctx.lineWidth=3;ctx.beginPath();ctx.arc(c.x,c.y,34,0,TAU);ctx.stroke();line(c.x-39,c.y,c.x-27,c.y,'#f48091',3);line(c.x+27,c.y,c.x+39,c.y,'#f48091',3);line(c.x,c.y-39,c.x,c.y-27,'#f48091',3);line(c.x,c.y+27,c.x,c.y+39,'#f48091',3);
+    const c=centre(a.target);ctx.strokeStyle=a.blocked?'#eacb91':'#f48091';ctx.lineWidth=3;ctx.beginPath();ctx.arc(c.x,c.y,34,0,TAU);ctx.stroke();line(c.x-39,c.y,c.x-27,c.y,'#f48091',3);line(c.x+27,c.y,c.x+39,c.y,'#f48091',3);line(c.x,c.y-39,c.x,c.y-27,'#f48091',3);line(c.x,c.y+27,c.x,c.y+39,'#f48091',3);
   }
  }
 }
@@ -208,7 +224,7 @@ function drawFrame(ts){const dt=Math.min((ts-lastFrame)/1000||0,.06);lastFrame=t
  for(let y=0;y<C.SIZE;y++)for(let x=0;x<C.SIZE;x++)floorTile(x,y,t);
  drawBeam(session.state,t);
  for(const [x,y] of session.state.walls)wallTile({x,y});
- drawPreview(session.state);
+ drawPreview(session.state,t);
  for(const e of session.state.enemies){if(e.hp<=0)continue;if(e.kind==='heart')drawHeart(e,t);else if(e.kind==='watcher')drawWatcher(e,t);else drawSkitter(e,t);enemyHP(e);}
  drawPlayer(session.state,t);
  drawHover(session.state);
