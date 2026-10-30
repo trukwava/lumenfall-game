@@ -75,3 +75,21 @@ test('replay resets chambers, relics and health',()=>{
  C.dispatch(ses,{type:'RESTART'});
  assert.deepEqual(ses.state,C.newGame());assert.equal(ses.history.length,0);
 });
+
+test('an entire three-chamber run is winnable with legal actions',()=>{
+ const paths=[
+  ['STRIKE','MOVE:N','AIM:N','END_TURN','MOVE:E','STRIKE','STRIKE','END_TURN','MOVE:N','MOVE:E','END_TURN','AIM:E','STRIKE'],
+  ['STRIKE','MOVE:E','END_TURN','STRIKE','AIM:N','END_TURN','MOVE:E','STRIKE','STRIKE'],
+  ['STRIKE','MOVE:N','MOVE:W','END_TURN','MOVE:N','MOVE:N','END_TURN','MOVE:N','STRIKE','STRIKE','END_TURN','MOVE:E','STRIKE','STRIKE','END_TURN','MOVE:S','MOVE:S','MOVE:S','END_TURN','MOVE:S','STRIKE']
+ ];
+ let s=C.newGame();
+ for(let i=0;i<paths.length;i++){
+  for(const a of paths[i]){
+   const [type,direction]=a.split(':');const r=C.reducer(s,{type,direction});
+   assert.equal(r.changed,true,`room ${i+1}, action ${a}`);s=r.state;
+  }
+  assert.equal(s.phase,i===paths.length-1?'won':'reward');
+  if(i<2){const r=C.reducer(s,{type:'CHOOSE_RELIC',id:i===0?'longwick':'emberwell'});assert.equal(r.changed,true);s=r.state;}
+ }
+ assert.ok(s.player.hp>0);assert.equal(s.roomIndex,2);
+});
