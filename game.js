@@ -8,6 +8,7 @@ const W=768, G=80, O=64, TAU=Math.PI*2;
 const COLORS={gold:'#f4ca7e',cream:'#fff0be',stone:'#293249',violet:'#ab82d6',danger:'#e57787'};
 let session=C.makeSession(),started=false,hover=null,lastFrame=0,shake=0,particles=[],soundOn=true,motionOn=true;
 const SAVE_KEY='lumenfall-run-v3';
+const RECORD_KEY='lumenfall-personal-best-v1';
 let cachedPreview=null;
 function readSaved(){
  try {
@@ -23,6 +24,30 @@ function persistRun(){
  }catch{}
 }
 function updateContinue(){const btn=$('continueBtn');if(btn)btn.hidden=!readSaved();}
+function randomSeed(){
+  try{
+    if(window.crypto?.getRandomValues){const data=new Uint32Array(1);window.crypto.getRandomValues(data);return data[0]||1;}
+  }catch{}
+  return Date.now()>>>0||1;
+}
+function chosenSeed(){
+ const raw=String($('seedInput').value||'').trim();
+ return /^\\d+$/.test(raw)&&Number(raw)<=0xffffffff?Number(raw):randomSeed();
+}
+function getRecord(){try{return JSON.parse(localStorage.getItem(RECORD_KEY)||'null');}catch{return null;}}
+function recordVictory(s){
+ if(s.phase!=='won')return;
+ const previous=getRecord(),candidate={turns:s.turn,hp:s.player.hp,seed:s.seed||0};
+ if(!previous||candidate.turns<previous.turns||(candidate.turns===previous.turns&&candidate.hp>previous.hp)){
+  try{localStorage.setItem(RECORD_KEY,JSON.stringify(candidate));}catch{}
+ }
+}
+function updateRecordLine(){
+ const record=getRecord();
+ $('recordLine').textContent=record&&Number.isInteger(record.turns)&&Number.isInteger(record.hp)
+   ?`PERSONAL BEST · ${record.turns} TURNS · ${record.hp} FLAME`
+   :'YOUR FIRST DESCENT AWAITS';
+}
 
 try{soundOn=localStorage.getItem('lumenfall-sound')!=='off';const choice=localStorage.getItem('lumenfall-motion');motionOn=choice===null?!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches:choice!=='off';}catch{}
 const rgba=(r,g,b,a)=>`rgba(${r},${g},${b},${a})`;
@@ -68,10 +93,11 @@ function showReward(){
  $('rewardChamber').textContent=`CHAMBER ${session.state.roomIndex+1} CLEARED`;
  $('rewardOptions').innerHTML=C.RELICS.filter(r=>!session.state.relics.includes(r.id)).map(r=>`<button class="relic-card" data-relic="${r.id}"><span class="relic-symbol">${r.symbol}</span><span><strong>${r.name}</strong><small>${r.description}</small></span><span class="relic-arrow">➜</span></button>`).join('');
 }
-function showResult(){const won=session.state.phase==='won';$('resultOverlay').classList.add('visible');$('resultSymbol').textContent=won?'✦':'◈';$('resultEyebrow').textContent=won?'THE SHADOWS ARE SILENT':'THE LANTERN GOES DARK';$('resultTitle').textContent=won?'DAWN RETURNS':'FALLEN';$('resultText').textContent=won?'For one more night, the stars remember their names.':'Even the last flame may be rekindled.';$('resultStat').textContent=`${won?'CLEARED':'SURVIVED'} • TURN ${String(session.state.turn).padStart(2,'0')} • ${session.state.player.hp} FLAME REMAINING`;}
+function showResult(){const won=session.state.phase==='won';if(won)recordVictory(session.state);updateRecordLine();$('resultOverlay').classList.add('visible');$('resultSymbol').textContent=won?'✦':'◈';$('resultEyebrow').textContent=won?'THE SHADOWS ARE SILENT':'THE LANTERN GOES DARK';$('resultTitle').textContent=won?'DAWN RETURNS':'FALLEN';$('resultText').textContent=won?'For one more night, the stars remember their names.':'Even the last flame may be rekindled.';$('resultStat').textContent=`${won?'CLEARED':'SURVIVED'} • TURN ${String(session.state.turn).padStart(2,'0')} • ${session.state.player.hp} FLAME REMAINING • SEED ${session.state.seed||0}`;}
 function updateHUD(){
  const s=session.state,p=s.player,pr=C.preview(s);cachedPreview=pr;
  $('turnLabel').textContent=`TURN ${String(s.turn).padStart(2,'0')}`;
+ $('seedLabel').textContent=`SEED ${s.seed||0}`;
  $('chamberLabel').textContent=C.CHAMBERS[s.roomIndex].name;
  $('sectorLabel').textContent=`CHAMBER ${String(s.roomIndex+1).padStart(2,'0')} / ${String(C.CHAMBERS.length).padStart(2,'0')} // 08×08`;
  $('relicStatus').textContent=s.relics.length?`RELICS: ${s.relics.map(id=>C.RELICS.find(r=>r.id===id).name).join(' · ')}${s.ward?' · WARD READY':''}`:'NO RELICS YET';
@@ -234,7 +260,7 @@ function drawFrame(ts){const dt=Math.min((ts-lastFrame)/1000||0,.06);lastFrame=t
  ctx.restore();requestAnimationFrame(drawFrame);
 }
 function start(){
- session=C.makeSession();particles=[];started=true;
+ session=C.makeSession(chosenSeed());particles=[];started=true;
  $('startOverlay').classList.remove('visible');$('resultOverlay').classList.remove('visible');$('rewardOverlay').classList.remove('visible');
  updateHUD();persistRun();playTone('toggleOn');
 }
@@ -247,7 +273,7 @@ function continueRun(){
  if(saved.phase==='reward')showReward();
  updateHUD();playTone('toggleOn');
 }
-function restart(){if(!started){start();return;}C.dispatch(session,{type:'RESTART'});particles=[];$('resultOverlay').classList.remove('visible');$('rewardOverlay').classList.remove('visible');updateHUD();persistRun();playTone('toggleOn');}
+function restart(){if(!started){start();return;}C.dispatch(session,{type:'RESTART',seed:chosenSeed()});particles=[];$('resultOverlay').classList.remove('visible');$('rewardOverlay').classList.remove('visible');updateHUD();persistRun();playTone('toggleOn');}
 function movement(dir,aim=false){onAction({type:aim?'AIM':'MOVE',direction:dir});}
 function clickBoard(ev){if(!started||session.state.phase!=='player')return;const bounds=canvas.getBoundingClientRect();const x=(ev.clientX-bounds.left)*W/bounds.width,y=(ev.clientY-bounds.top)*W/bounds.height,p={x:Math.floor((x-O)/G),y:Math.floor((y-O)/G)};
  if(!C.inside(p))return;const e=session.state.enemies.find(q=>q.hp>0&&C.same(q,p));if(e){onAction({type:'STRIKE',targetId:e.id});return;}
@@ -256,6 +282,14 @@ function clickBoard(ev){if(!started||session.state.phase!=='player')return;const
 function moveHover(ev){const b=canvas.getBoundingClientRect(),x=(ev.clientX-b.left)*W/b.width,y=(ev.clientY-b.top)*W/b.height,p={x:Math.floor((x-O)/G),y:Math.floor((y-O)/G)};hover=C.inside(p)?p:null;}
 canvas.addEventListener('pointermove',moveHover);canvas.addEventListener('pointerleave',()=>hover=null);canvas.addEventListener('click',clickBoard);
 $('rewardOptions').addEventListener('click',ev=>{const btn=ev.target.closest('[data-relic]');if(btn)onAction({type:'CHOOSE_RELIC',id:btn.dataset.relic});});
+$('seedCopyBtn').addEventListener('click',()=>{
+ const seed=String(session.state.seed||0);
+ const onCopy=()=>{session.message=`Seed ${seed} copied. Enter it on the title screen to replay the layout.`;updateHUD();};
+ const fallback=()=>{session.message=`Challenge seed: ${seed}. Enter it on the title screen to replay.`;updateHUD();};
+ if(window.navigator?.clipboard?.writeText){
+  window.navigator.clipboard.writeText(seed).then(onCopy).catch(fallback);
+ }else fallback();
+});
 $('continueBtn').addEventListener('click',continueRun);
 $('startBtn').addEventListener('click',start);$('restartOverlayBtn').addEventListener('click',restart);$('replayBtn').addEventListener('click',restart);
 $('toggleBtn').addEventListener('click',()=>onAction({type:'TOGGLE_LANTERN'}));$('strikeBtn').addEventListener('click',()=>onAction({type:'STRIKE'}));$('undoBtn').addEventListener('click',()=>{if(!started)return;C.dispatch(session,{type:'UNDO'});updateHUD();persistRun();playTone('undo');});$('endBtn').addEventListener('click',()=>onAction({type:'END_TURN'}));
@@ -276,5 +310,5 @@ window.addEventListener('keydown',ev=>{
  else if(k==='enter'){ev.preventDefault();onAction({type:'END_TURN'});}
  else if(k==='r'){restart();}
 });
-updateContinue();updateHUD();requestAnimationFrame(drawFrame);
+updateContinue();updateRecordLine();updateHUD();requestAnimationFrame(drawFrame);
 })();
