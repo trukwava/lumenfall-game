@@ -23,6 +23,7 @@ function boot(store){
   };
   return elements[id];
  }
+ element('seedInput').value='0'; // Keep baseline smoke tests on the authored seed.
  const document={
   getElementById(id){assert.ok(ids.has(id),'missing DOM element '+id);return element(id);},
   querySelector(){return element('synthetic');},body:{}
@@ -72,4 +73,56 @@ test('victory in first chamber opens the relic interlude and saves reward state'
  const next=JSON.parse(store.get('lumenfall-run-v3')).state;
  assert.equal(next.roomIndex,1);assert.equal(next.phase,'player');
  assert.equal(next.relics[0],'longwick');
+});
+
+test('numeric challenge seeds produce identical spawns on replay',()=>{
+ const storeA=new Map(),storeB=new Map(),a=boot(storeA),b=boot(storeB);
+ a.elements.seedInput.value='321765';
+ b.elements.seedInput.value='321765';
+ a.handlers['startBtn:click']();b.handlers['startBtn:click']();
+ const runA=JSON.parse(storeA.get('lumenfall-run-v3')).state;
+ const runB=JSON.parse(storeB.get('lumenfall-run-v3')).state;
+ assert.equal(runA.seed,321765);
+ assert.deepEqual(runA.enemies,runB.enemies);
+ assert.equal(C.loadable(runA),true);
+});
+test('UI completes all six chambers, saves personal best, and clears active run',()=>{
+ const store=new Map(),ui=boot(store);
+ const scripts=[
+ ['Sskitter-a','MN','AN','E','ME','Swatcher-a','Swatcher-a','E','MN','AE','Sskitter-b'],
+ ['Sskitter-a','AN','E','ME','ME','Swatcher-a','E','AE','Sskitter-b'],
+ ['AN','Swatcher-a','E','AE','Sskitter-a','E','MN','E','MS','ME','Sskitter-b','E','AN','E','ME','ME','E','ME','ME','Swatcher-b'],
+ ['Sskitter-a','MN','MN','E','AN','ME','Swatcher-a','E','MN','AE','Sskitter-b'],
+ ['Sskitter-a','AN','Swatcher-b','E','MN','E','MN','MN','E','MN','AE','Swatcher-a'],
+ ['MN','MN','Sheart-a','E','Sheart-a','Sheart-a','E','MS','MS','Sskitter-a']
+ ];
+ const picks=['brightsteel','ashward','longwick','starheart','pilgrim'];
+ const key={N:'ArrowUp',E:'ArrowRight',S:'ArrowDown',W:'ArrowLeft'};
+ ui.handlers['startBtn:click']();
+ for(let room=0;room<scripts.length;room++){
+  for(const command of scripts[room]){
+   if(command[0]==='S'){
+    const saved=JSON.parse(store.get('lumenfall-run-v3')).state;
+    const target=saved.enemies.find(e=>e.id===command.slice(1));
+    assert.ok(target,'missing target '+command);
+    const event={clientX:64+target.x*80+40,clientY:64+target.y*80+40};
+    ui.handlers['board:click'](event);
+   }else{
+    const event={key:command==='E'?'Enter':key[command[1]],shiftKey:command[0]==='A',preventDefault(){}};
+    ui.handlers['window:keydown'](event);
+   }
+  }
+  if(room<5){
+   const state=JSON.parse(store.get('lumenfall-run-v3')).state;
+   assert.equal(state.phase,'reward','reward after chamber '+(room+1));
+   ui.handlers['rewardOptions:click']({target:{closest:()=>({dataset:{relic:picks[room]}})}});
+   assert.equal(JSON.parse(store.get('lumenfall-run-v3')).state.roomIndex,room+1);
+  }
+ }
+ assert.equal(store.has('lumenfall-run-v3'),false);
+ assert.equal(ui.elements.resultTitle.textContent,'DAWN RETURNS');
+ const best=JSON.parse(store.get('lumenfall-personal-best-v1'));
+ assert.equal(best.turns,18);assert.equal(best.hp,7);assert.equal(best.seed,0);
+ const reloaded=boot(store);
+ assert.match(reloaded.elements.recordLine.textContent,/PERSONAL BEST/);
 });
