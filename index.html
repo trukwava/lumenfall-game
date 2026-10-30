@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#090d18" />
+  <meta name="description" content="Lumenfall: a tactical game of light and shadow. A complete browser-playable encounter." />
+  <title>Lumenfall — The Shattered Passage</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="background-halo" aria-hidden="true"></div>
+  <main class="shell">
+    <header class="site-header">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 40 42" width="37" height="39"><path d="M20 2 25 10 22 16h8v20H10V16h8l-3-6z" fill="none" stroke="#d4ad67" stroke-width="1.6"/><circle cx="20" cy="24" r="7" fill="#eec47d" opacity=".18"/><path d="M20 16c-8 9-4 15 0 15 5 0 8-6 0-15" fill="#f3cd7e"/><path d="M10 36h20" stroke="#eec47d" stroke-width="2"/></svg>
+        </div>
+        <div><div class="brand-title">LUMENFALL</div><div class="brand-subtitle">THE LAST LAMPLIGHTER</div></div>
+      </div>
+      <div class="header-right"><span class="sigil">✧</span> THE SHATTERED PASSAGE <span class="tiny-separator">/</span> ACT I <button id="helpBtn" class="plain-button" title="How to play">? HELP</button></div>
+    </header>
+    <div class="game-layout">
+      <section class="game-section" aria-label="Tactical battlefield">
+        <div class="board-ornament"><span>THE OBSERVATORY HAS FALLEN</span><span class="ornament-stars">✦ &nbsp; ✧ &nbsp; ✦</span></div>
+        <div class="board-frame">
+          <canvas id="board" width="768" height="768" aria-label="8 by 8 tactical battlefield, controlled using keyboard or mouse"></canvas>
+          <div class="overlay visible" id="startOverlay">
+            <div class="overlay-shade"></div>
+            <div class="start-content">
+              <div class="overlay-crest" aria-hidden="true"><div class="crest-rays"></div><div class="crest-core">✦</div></div>
+              <div class="eyebrow">A LIGHT AGAINST THE ENDLESS NIGHT</div>
+              <h1>LUMEN<span>FALL</span></h1>
+              <div class="ornate-rule"><span>✧</span></div>
+              <p>Three actions. One dying flame.<br />The dark moves only when you do.</p>
+              <button class="gold-button" id="startBtn">ENTER THE PASSAGE <span>→</span></button>
+              <div class="start-footnote">A tactical encounter of light &amp; shadow</div>
+            </div>
+          </div>
+          <div class="overlay" id="resultOverlay" aria-live="polite">
+            <div class="overlay-shade"></div><div class="result-content">
+              <div id="resultSymbol" class="result-symbol">✧</div>
+              <div class="eyebrow" id="resultEyebrow">THE CHAMBER IS SILENT</div>
+              <h2 id="resultTitle">VICTORY</h2>
+              <p id="resultText">The lantern has won another night.</p>
+              <div class="result-stat" id="resultStat">SURVIVED • 0 TURNS</div>
+              <button id="restartOverlayBtn" class="gold-button">DESCEND AGAIN <span>↻</span></button>
+            </div>
+          </div>
+        </div>
+        <div class="board-bottom"><span class="dot gold"></span><span id="statusMessage" aria-live="polite">Your light is the blade. Your shadow is the shield.</span><span class="coordinates">SECTOR 01 // 08×08</span></div>
+      </section>
+      <aside class="sidebar" aria-label="Player status and controls">
+        <div class="side-topline"><span>✧ &nbsp; LAMPLIGHTER</span><span id="turnLabel">TURN 01</span></div>
+        <section class="panel vitality">
+          <div class="panel-heading"><span>VITAL FLAME</span><span id="hpLabel">6 / 6</span></div>
+          <div class="hearts" id="hearts" aria-label="Player health"></div>
+          <div class="thin-divider"></div>
+          <div class="panel-heading"><span>ACTION POINTS</span><span id="apLabel">3 AVAILABLE</span></div>
+          <div class="ap-points" id="apPoints"></div>
+          <p class="help-small">Each movement, rotation, or attack costs one point.</p>
+        </section>
+        <section class="lantern-panel">
+          <div class="lantern-icon" id="lanternIcon" aria-hidden="true">✦</div>
+          <div class="lantern-copy"><div class="overline">THE ANCIENT LANTERN</div><strong id="lanternStatus">RADIANT</strong><span id="lanternHint">Reveals enemies. Exposes you.</span></div>
+          <button id="toggleBtn" class="lantern-toggle" aria-label="Toggle lantern" title="Toggle lantern (L)">◐</button>
+        </section>
+        <section class="panel actions-panel">
+          <div class="panel-heading"><span>COMMANDS</span><span class="muted">3 AP / TURN</span></div>
+          <div class="command-row"><div class="direction-grid"><button id="aimN" title="Aim north (Shift+↑)">↑</button><button id="aimW" title="Aim west (Shift+←)">←</button><button id="aimS" title="Aim south (Shift+↓)">↓</button><button id="aimE" title="Aim east (Shift+→)">→</button></div><div class="direction-text"><strong>DIRECT YOUR LIGHT</strong><span>Choose where your lantern shines.</span></div></div>
+          <div class="action-buttons"><button id="strikeBtn" class="action-button primary"><span class="action-icon">✶</span><span><strong>RADIANT STRIKE</strong><small>Attack a lit foe · F</small></span></button><button id="undoBtn" class="action-button"><span class="action-icon">↶</span><span><strong>UNDO</strong><small>Rewind action · Z</small></span></button></div>
+          <button class="end-turn" id="endBtn">END TURN <span>↵</span></button>
+        </section>
+        <section class="panel prophecy">
+          <div class="panel-heading"><span>THE DARK FORETELLS</span><span class="pulse-dot"></span></div>
+          <div id="previewList" class="preview-list" aria-live="polite"></div>
+          <div class="preview-footer" id="previewDamage">SAFE TO END TURN</div>
+        </section>
+        <div class="sidebar-footer"><button id="soundBtn" class="secondary-text" title="Toggle sound">♪ SOUND ON</button><button id="replayBtn" class="secondary-text" title="Restart encounter">↻ RESTART</button><button id="motionBtn" class="secondary-text" title="Toggle animations">◌ MOTION ON</button></div>
+      </aside>
+    </div>
+    <footer class="footer"><div><span>✦</span> SEEK THE LIGHT. TRUST THE SHADOW.</div><div>WASD / ARROWS MOVE &nbsp;·&nbsp; SHIFT + ARROWS AIM &nbsp;·&nbsp; L TOGGLE &nbsp;·&nbsp; F STRIKE &nbsp;·&nbsp; ENTER COMMIT</div></footer>
+  </main>
+  <dialog id="helpDialog" class="help-dialog" aria-label="How to play">
+    <div class="help-head"><span>THE LAMPLIGHTER'S CODEX</span><button id="closeHelp" aria-label="Close instructions">✕</button></div>
+    <h2>Light reveals.<br /><em>Darkness protects.</em></h2>
+    <p>Defeat every shadow in the chamber to survive. You have <strong>3 action points</strong> each turn. Move, aim, toggle the lantern or strike for 1 AP each, then end your turn to let enemies act.</p>
+    <ul><li><strong>Move:</strong> arrow keys / WASD, or click an adjacent tile.</li><li><strong>Aim:</strong> Shift + arrows, or the four direction buttons.</li><li><strong>Toggle:</strong> L or click the lantern switch. Turning off hides you from distant Watchers.</li><li><strong>Strike:</strong> F or click an illuminated enemy. Only enemies touched by your four-tile lantern beam can be struck.</li><li><strong>Rewind:</strong> Z undoes actions before you end the turn.</li><li><strong>Commit:</strong> Enter ends the turn. Red warnings and dotted arrows preview exactly what enemies will do.</li></ul>
+    <div class="codex-line">SKITTERS PURSUE LIGHT. WATCHERS FIRE ALONG CLEAR LANES. ADJACENT FOES ATTACK EVEN IN THE DARK.</div>
+    <button id="closeHelpGold" class="gold-button">I UNDERSTAND <span>✧</span></button>
+  </dialog>
+  <script src="core.js"></script><script src="game.js"></script>
+</body>
+</html>
