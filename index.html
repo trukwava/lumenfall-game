@@ -33,8 +33,9 @@
               <h1>LUMEN<span>FALL</span></h1>
               <div class="ornate-rule"><span>✧</span></div>
               <p>Three actions. One dying flame.<br />The dark moves only when you do.</p>
-              <button class="gold-button" id="startBtn">ENTER THE PASSAGE <span>→</span></button>
-              <div class="start-footnote">Four chambers of light &amp; shadow</div>
+              <button class="gold-button" id="startBtn">BEGIN NEW DESCENT <span>→</span></button>
+              <button class="gold-button continue-button" id="continueBtn" hidden>CONTINUE SAVED RUN <span>↪</span></button>
+              <div class="start-footnote">Six chambers of light &amp; shadow · Progress saved automatically</div>
             </div>
           </div>
           <div class="overlay" id="rewardOverlay" aria-live="polite">
@@ -57,7 +58,7 @@
             </div>
           </div>
         </div>
-        <div class="board-bottom"><span class="dot gold"></span><span id="statusMessage" aria-live="polite">Your light is the blade. Your shadow is the shield.</span><span class="coordinates" id="sectorLabel">CHAMBER 01 / 03 // 08×08</span></div>
+        <div class="board-bottom"><span class="dot gold"></span><span id="statusMessage" aria-live="polite">Your light is the blade. Your shadow is the shield.</span><span class="coordinates" id="sectorLabel">CHAMBER 01 / 06 // 08×08</span></div>
       </section>
       <aside class="sidebar" aria-label="Player status and controls">
         <div class="side-topline"><span>✧ &nbsp; LAMPLIGHTER</span><span id="turnLabel">TURN 01</span></div>
@@ -93,7 +94,7 @@
   <dialog id="helpDialog" class="help-dialog" aria-label="How to play">
     <div class="help-head"><span>THE LAMPLIGHTER'S CODEX</span><button id="closeHelp" aria-label="Close instructions">✕</button></div>
     <h2>Light reveals.<br /><em>Darkness protects.</em></h2>
-    <p>Defeat every shadow across four chambers to survive. Choose a relic after clearing the first three. You have <strong>3 action points</strong> each turn. Move, aim, toggle the lantern or strike for 1 AP each, then end your turn to let enemies act.</p>
+    <p>Defeat every shadow across six chambers to survive. Choose a relic after clearing each non-final chamber. You have <strong>3 action points</strong> each turn. Move, aim, toggle the lantern or strike for 1 AP each, then end your turn to let enemies act.</p>
     <ul><li><strong>Move:</strong> arrow keys / WASD, or click an adjacent tile.</li><li><strong>Aim:</strong> Shift + arrows, or the four direction buttons.</li><li><strong>Toggle:</strong> L or click the lantern switch. Turning off hides you from distant Watchers.</li><li><strong>Strike:</strong> F or click an illuminated enemy. Only enemies touched by your lantern beam can be struck.</li><li><strong>Rewind:</strong> Z undoes actions before you end the turn.</li><li><strong>Commit:</strong> Enter ends the turn. Red warnings and dotted arrows preview exactly what enemies will do.</li></ul>
     <div class="codex-line">SKITTERS PURSUE LIGHT. WATCHERS FIRE ALONG CLEAR LANES. ADJACENT FOES ATTACK EVEN IN THE DARK.</div>
     <button id="closeHelpGold" class="gold-button">I UNDERSTAND <span>✧</span></button>
