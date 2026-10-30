@@ -213,13 +213,13 @@
   // Save files are user-controlled local data. Validate before restoring to avoid corrupt runs.
   function loadable(s){
     if(!s||s.version!==3||!Number.isInteger(s.roomIndex)||s.roomIndex<0||s.roomIndex>=CHAMBERS.length)return false;
-    if(!['player','reward'].includes(s.phase)||!Number.isInteger(s.turn)||s.turn<1)return false;
+    if(!['player','reward'].includes(s.phase)||!Number.isSafeInteger(s.turn)||s.turn<1)return false;
     if(!Number.isInteger(s.ap)||s.ap<0||s.ap>MAX_AP)return false;
     if(!Array.isArray(s.walls)||JSON.stringify(s.walls)!==JSON.stringify(CHAMBERS[s.roomIndex].walls))return false;
-    if(!Array.isArray(s.relics)||new Set(s.relics).size!==s.relics.length||s.relics.some(id=>!RELICS.some(r=>r.id===id))||s.relics.length>s.roomIndex)return false;
-    if(!Number.isInteger(s.ward)||s.ward<0||s.ward>1)return false;
+    if(!Array.isArray(s.relics)||new Set(s.relics).size!==s.relics.length||s.relics.some(id=>!RELICS.some(r=>r.id===id))||s.relics.length!==s.roomIndex)return false;
+    if(!Number.isInteger(s.ward)||s.ward<0||s.ward>1||(!s.relics.includes('ashward')&&s.ward!==0))return false;
     const p=s.player;
-    if(!p||!passable(p,s)||!Object.hasOwn(DIRECTIONS,p.facing)||typeof p.lantern!=='boolean')return false;
+    if(!p||!Number.isInteger(p.x)||!Number.isInteger(p.y)||!passable(p,s)||!Object.hasOwn(DIRECTIONS,p.facing)||typeof p.lantern!=='boolean')return false;
     if(!Number.isInteger(p.maxHp)||p.maxHp!==MAX_HP+(s.relics.includes('starheart')?1:0))return false;
     if(!Number.isInteger(p.hp)||p.hp<=0||p.hp>p.maxHp)return false;
     const template=spawnEnemies(s.roomIndex);
@@ -227,11 +227,13 @@
     const occupiedPositions=new Set([coord(p)]);
     for(let i=0;i<template.length;i++){
       const e=s.enemies[i],b=template[i];
-      if(!e||e.id!==b.id||e.kind!==b.kind||e.maxHp!==b.maxHp||!passable(e,s))return false;
+      if(!e||e.id!==b.id||e.kind!==b.kind||e.maxHp!==b.maxHp||!Number.isInteger(e.x)||!Number.isInteger(e.y)||!passable(e,s))return false;
       if(!Number.isInteger(e.hp)||e.hp<0||e.hp>e.maxHp)return false;
       if(e.hp>0){if(occupiedPositions.has(coord(e)))return false;occupiedPositions.add(coord(e));}
-      if(e.lastKnown!==null&&e.lastKnown!==undefined&&!inside(e.lastKnown))return false;
+      if(e.lastKnown!==null&&e.lastKnown!==undefined&&(!Number.isInteger(e.lastKnown.x)||!Number.isInteger(e.lastKnown.y)||!inside(e.lastKnown)))return false;
     }
+    if(s.phase==='reward' && s.enemies.some(e=>e.hp>0))return false;
+    if(s.phase==='player' && s.enemies.every(e=>e.hp===0))return false;
     return true;
   }
   function makeSession(){return {state:newGame(),history:[],lastEvents:[],message:'Find the light. Master the dark.'};}
