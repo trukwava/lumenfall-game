@@ -2,7 +2,7 @@
 
 A dark-fantasy, turn-based tactical game about using **light as both a weapon and a liability**, playable in a desktop web browser.
 
-**Current release: Three-Chamber Descent (Milestone 2).** This is a short, playable campaign with a beginning, relic interludes, and a definitive victory/defeat ending. It is not yet the planned six-chamber roguelite with an Eclipse Heart boss.
+**Current release: Eclipse Sanctum (Milestone 3).** This is a four-chamber campaign with a unique final boss, relic interludes, and a definitive victory/defeat ending. It is not yet the planned six-chamber roguelite with an Eclipse Heart boss.
 
 ## Play
 
@@ -24,9 +24,9 @@ Each turn gives you 3 AP. Use the lantern to expose enemies and Radiant Strike t
 | Z | Undo the last player action |
 | Mouse | Select lit enemies, move to adjacent tiles, and use command buttons |
 
-Clear **The Shattered Passage**, **The Veiled Gallery**, and **The Starless Altar** in a single run, carrying remaining health from chamber to chamber.
+Clear **The Shattered Passage**, **The Veiled Gallery**, **The Starless Altar**, and **The Eclipse Sanctum** in a single run, carrying remaining health between chambers. The Eclipse Heart boss has five health, follows last-known player positions, and uses a deterministic pulsing attack on even-numbered turns when the lantern exposes the player within two tiles.
 
-After the first two chambers, choose one relic (each unique):
+After each of the first three chambers, choose one relic (each unique):
 
 - **Longwick:** Extend your lantern beam by one tile.
 - **Ash Ward:** Absorb the first enemy hit in each subsequent chamber.
@@ -53,7 +53,7 @@ Requires Node.js 20 or later:
 node --test tests/*.test.cjs
 ```
 
-The suite currently has **28 tests**. Local tests passed before this update was pushed. Browser QA and hosted Pages deployment should still be checked independently.
+The suite includes combat and campaign regression tests, including boss preview checks. The latest suite has **not been independently executed in this workspace**; confirm the GitHub Actions result before treating it as passing. Browser QA and hosted Pages deployment also require independent verification.
 
 ## Deploy
 
@@ -66,8 +66,8 @@ GitHub Pages may take time to complete its first deployment. A working Pages URL
 ## Roadmap
 
 1. Finish manual browser QA of the three-chamber run and balance its difficulty.
-2. Add a fourth and fifth chamber with new tactical patterns and more relic interactions.
-3. Develop the Eclipse Heart boss and a six-chamber campaign.
+2. Add a fifth and sixth chamber with new tactical patterns and more relic interactions.
+3. Expand the Eclipse Heart boss with richer telegraphed patterns and deliver a six-chamber campaign.
 4. Add saving/resuming runs, accessibility refinements, and richer audiovisual effects.
 5. Cut a fully tested first public release.
 
