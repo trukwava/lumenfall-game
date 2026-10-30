@@ -7,7 +7,7 @@ const game=fs.readFileSync(path.join(__dirname,'..','game.js'),'utf8');
 const markup=fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');
 const ids=new Set([...markup.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]));
 
-function boot(){
+function boot(savedState=null){
  const canvasOps={calls:0};
  const gradient={addColorStop(){}};
  const ctx=new Proxy({},{
@@ -38,6 +38,7 @@ function boot(){
   body:{}
  };
  const store=new Map([['lumenfall-motion','on']]);
+ if(savedState)store.set('lumenfall-run-v3',JSON.stringify({version:1,state:savedState}));
  const localStorage={
   getItem:k=>store.has(k)?store.get(k):null,
   setItem:(k,v)=>store.set(k,v),
@@ -101,4 +102,25 @@ test('seed-copy fallback gives the player their reproducible challenge code',()=
  ui.handlers['startBtn:click']();
  ui.handlers['seedCopyBtn:click']();
  assert.match(ui.elements.statusMessage.textContent,/864209/);
+});
+
+test('each of six chamber environments renders and shows its correct act',()=>{
+ let state=C.newGame();
+ for(let room=0;room<6;room++){
+  assert.equal(C.loadable(state),true);
+  const ui=boot(state);
+  ui.handlers['continueBtn:click']();
+  ui.render(room*16.67+1);
+  assert.equal(ui.elements.chamberLabel.textContent,C.CHAMBERS[room].name);
+  assert.equal(ui.elements.actLabel.textContent,['ACT I','ACT II','ACT III'][Math.floor(room/2)]);
+  assert.ok(ui.canvasOps.calls>150,'chamber '+(room+1)+' did not render');
+  if(room===5)break;
+  const fixture=C.copy(state);
+  fixture.enemies.slice(1).forEach(e=>e.hp=0);
+  fixture.enemies[0].hp=1;fixture.enemies[0].x=2;fixture.enemies[0].y=6;
+  Object.assign(fixture.player,{x:1,y:6,facing:'E',lantern:true});fixture.ap=3;
+  const cleared=C.reducer(fixture,{type:'STRIKE'});
+  assert.equal(cleared.state.phase,'reward');
+  state=C.reducer(cleared.state,{type:'CHOOSE_RELIC',id:C.RELICS[room].id}).state;
+ }
 });
