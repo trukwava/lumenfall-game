@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#090d18" />
-  <meta name="description" content="Lumenfall: a tactical game of light and shadow. A complete browser-playable encounter." />
-  <title>Lumenfall — The Shattered Passage</title>
+  <meta name="description" content="Lumenfall: three atmospheric chambers of tactical light-and-shadow combat." />
+  <title>Lumenfall — The Last Lamplighter</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -18,7 +18,7 @@
         </div>
         <div><div class="brand-title">LUMENFALL</div><div class="brand-subtitle">THE LAST LAMPLIGHTER</div></div>
       </div>
-      <div class="header-right"><span class="sigil">✧</span> THE SHATTERED PASSAGE <span class="tiny-separator">/</span> ACT I <button id="helpBtn" class="plain-button" title="How to play">? HELP</button></div>
+      <div class="header-right"><span class="sigil">✧</span> <span id="chamberLabel">THE SHATTERED PASSAGE</span> <span class="tiny-separator">/</span> ACT I <button id="helpBtn" class="plain-button" title="How to play">? HELP</button></div>
     </header>
     <div class="game-layout">
       <section class="game-section" aria-label="Tactical battlefield">
@@ -34,7 +34,16 @@
               <div class="ornate-rule"><span>✧</span></div>
               <p>Three actions. One dying flame.<br />The dark moves only when you do.</p>
               <button class="gold-button" id="startBtn">ENTER THE PASSAGE <span>→</span></button>
-              <div class="start-footnote">A tactical encounter of light &amp; shadow</div>
+              <div class="start-footnote">Three chambers of light &amp; shadow</div>
+            </div>
+          </div>
+          <div class="overlay" id="rewardOverlay" aria-live="polite">
+            <div class="overlay-shade"></div>
+            <div class="reward-content">
+              <div class="eyebrow" id="rewardChamber">CHAMBER CLEARED</div>
+              <h2>CHOOSE YOUR RADIANCE</h2>
+              <p>One relic may accompany you deeper into the observatory.</p>
+              <div id="rewardOptions" class="reward-options"></div>
             </div>
           </div>
           <div class="overlay" id="resultOverlay" aria-live="polite">
@@ -48,7 +57,7 @@
             </div>
           </div>
         </div>
-        <div class="board-bottom"><span class="dot gold"></span><span id="statusMessage" aria-live="polite">Your light is the blade. Your shadow is the shield.</span><span class="coordinates">SECTOR 01 // 08×08</span></div>
+        <div class="board-bottom"><span class="dot gold"></span><span id="statusMessage" aria-live="polite">Your light is the blade. Your shadow is the shield.</span><span class="coordinates" id="sectorLabel">CHAMBER 01 / 03 // 08×08</span></div>
       </section>
       <aside class="sidebar" aria-label="Player status and controls">
         <div class="side-topline"><span>✧ &nbsp; LAMPLIGHTER</span><span id="turnLabel">TURN 01</span></div>
@@ -58,7 +67,7 @@
           <div class="thin-divider"></div>
           <div class="panel-heading"><span>ACTION POINTS</span><span id="apLabel">3 AVAILABLE</span></div>
           <div class="ap-points" id="apPoints"></div>
-          <p class="help-small">Each movement, rotation, or attack costs one point.</p>
+          <p class="help-small">Each movement, rotation, or attack costs one point.</p><p id="relicStatus" class="help-small">NO RELICS YET</p>
         </section>
         <section class="lantern-panel">
           <div class="lantern-icon" id="lanternIcon" aria-hidden="true">✦</div>
@@ -84,8 +93,8 @@
   <dialog id="helpDialog" class="help-dialog" aria-label="How to play">
     <div class="help-head"><span>THE LAMPLIGHTER'S CODEX</span><button id="closeHelp" aria-label="Close instructions">✕</button></div>
     <h2>Light reveals.<br /><em>Darkness protects.</em></h2>
-    <p>Defeat every shadow in the chamber to survive. You have <strong>3 action points</strong> each turn. Move, aim, toggle the lantern or strike for 1 AP each, then end your turn to let enemies act.</p>
-    <ul><li><strong>Move:</strong> arrow keys / WASD, or click an adjacent tile.</li><li><strong>Aim:</strong> Shift + arrows, or the four direction buttons.</li><li><strong>Toggle:</strong> L or click the lantern switch. Turning off hides you from distant Watchers.</li><li><strong>Strike:</strong> F or click an illuminated enemy. Only enemies touched by your four-tile lantern beam can be struck.</li><li><strong>Rewind:</strong> Z undoes actions before you end the turn.</li><li><strong>Commit:</strong> Enter ends the turn. Red warnings and dotted arrows preview exactly what enemies will do.</li></ul>
+    <p>Defeat every shadow across three chambers to survive. Choose a relic after clearing the first two. You have <strong>3 action points</strong> each turn. Move, aim, toggle the lantern or strike for 1 AP each, then end your turn to let enemies act.</p>
+    <ul><li><strong>Move:</strong> arrow keys / WASD, or click an adjacent tile.</li><li><strong>Aim:</strong> Shift + arrows, or the four direction buttons.</li><li><strong>Toggle:</strong> L or click the lantern switch. Turning off hides you from distant Watchers.</li><li><strong>Strike:</strong> F or click an illuminated enemy. Only enemies touched by your lantern beam can be struck.</li><li><strong>Rewind:</strong> Z undoes actions before you end the turn.</li><li><strong>Commit:</strong> Enter ends the turn. Red warnings and dotted arrows preview exactly what enemies will do.</li></ul>
     <div class="codex-line">SKITTERS PURSUE LIGHT. WATCHERS FIRE ALONG CLEAR LANES. ADJACENT FOES ATTACK EVEN IN THE DARK.</div>
     <button id="closeHelpGold" class="gold-button">I UNDERSTAND <span>✧</span></button>
   </dialog>
