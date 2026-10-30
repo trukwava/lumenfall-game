@@ -16,3 +16,15 @@
 /* Accessible, descriptive tactical state without shifting the illustrated board. */
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 @media(prefers-contrast:more){.panel,.relic-card,.action-button{border-color:#e9d0a8!important}button:focus-visible{outline:3px solid #fff1c9!important}.heart.empty,.muted{color:#abb4c6!important}}
+
+/* Reproducible challenge seeds and personal bests */
+.seed-copy{border:0;background:transparent;color:#c7b58f;font:inherit;letter-spacing:.12em;padding:5px 7px;text-align:left}
+.seed-copy:hover{color:#ffdc9a;background:#ffe4a010}
+.seed-copy:focus-visible{outline:2px solid #e7c98c;outline-offset:1px}
+.seed-picker{display:flex;justify-content:space-between;align-items:baseline;gap:12px;max-width:320px;margin:1px auto 7px;color:#e4c58e;letter-spacing:.13em;font-size:10px;font-weight:700;text-align:left}
+.seed-picker span{font-weight:400;font-size:9px;color:#a8a9b9;letter-spacing:0}
+.seed-input{width:min(100%,320px);background:#10172a;color:#f9e0aa;outline:0;border:1px solid #c8a66a61;border-radius:2px;padding:12px 14px;margin:0 auto 12px;display:block;font-family:ui-monospace,SFMono-Regular,monospace;letter-spacing:.06em}
+.seed-input:focus-visible{border-color:#ffdda5;box-shadow:0 0 0 2px #f5ca7673}
+.start-record{font-size:10px;font-weight:700;letter-spacing:.12em;color:#cfb88b;margin-top:13px}
+.start-content{max-height:100%;overflow:auto;overscroll-behavior:contain}
+@media(max-width:490px){.seed-picker{font-size:9px;gap:6px;margin-top:8px}.seed-input{padding:9px 10px;margin-bottom:9px}.start-record{font-size:9px;margin-top:8px}.start-content p{font-size:14px;line-height:1.45}.seed-copy{font-size:9px}}
