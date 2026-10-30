@@ -58,9 +58,9 @@ test('undo restores lantern, AP, HP and movement; end turn clears history',()=>{
  assert.equal(ses.history.length,2);C.dispatch(ses,{type:'UNDO'});assert.equal(ses.state.player.lantern,true);assert.equal(ses.state.ap,2);
  C.dispatch(ses,{type:'UNDO'});assert.deepEqual(ses.state,C.newGame());C.dispatch(ses,{type:'END_TURN'});assert.equal(ses.history.length,0);
 });
-test('defeating last enemy wins immediately',()=>{
+test('defeating last enemy in first chamber offers relic',()=>{
  const s=C.newGame();s.enemies[1].hp=0;s.enemies[2].hp=0;
- assert.equal(action(s,{type:'STRIKE'}).state.phase,'won');
+ assert.equal(action(s,{type:'STRIKE'}).state.phase,'reward');
 });
 test('taking last hit loses without negative health',()=>{
  const s=C.newGame();s.player.hp=1;s.enemies[0].x=1;s.enemies[0].y=5;s.enemies[1].hp=0;s.enemies[2].hp=0;
