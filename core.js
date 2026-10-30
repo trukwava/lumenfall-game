@@ -19,12 +19,17 @@
     {name:'THE SHATTERED PASSAGE',walls:WALLS,enemies:[['skitter',5,6,1],['skitter',6,3,1],['watcher',2,2,2]]},
     {name:'THE VEILED GALLERY',walls:[[2,1],[2,2],[5,1],[5,2],[2,4],[5,4],[2,5]],enemies:[['skitter',4,6,1],['skitter',6,5,1],['watcher',3,2,2]]},
     {name:'THE STARLESS ALTAR',walls:[[3,1],[4,1],[2,3],[5,3],[3,4],[4,4],[2,5],[5,5]],enemies:[['skitter',6,6,1],['skitter',5,4,1],['watcher',1,2,2],['watcher',6,2,2]]},
+    {name:'THE CINDER LABYRINTH',walls:[[3,1],[3,2],[5,2],[3,4],[5,4],[2,5],[4,5]],enemies:[['skitter',5,6,1],['skitter',6,3,1],['watcher',2,2,2]]},
+    {name:'THE MIRROR VAULT',walls:[[2,1],[5,1],[3,3],[4,3],[2,5],[5,5]],enemies:[['skitter',4,6,1],['watcher',6,2,2],['watcher',1,3,2]]},
     {name:'THE ECLIPSE SANCTUM',walls:[[2,2],[5,2],[2,5],[5,5],[3,3],[4,3]],enemies:[['heart',5,4,5],['skitter',6,6,1]]}
   ];
   const RELICS=[
     {id:'longwick',name:'LONGWICK',symbol:'✧',description:'Lantern range increases by one tile.'},
     {id:'ashward',name:'ASH WARD',symbol:'◈',description:'Negate the first enemy hit in each later chamber.'},
-    {id:'emberwell',name:'EMBERWELL',symbol:'✦',description:'Restore two points of vital flame immediately.'}
+    {id:'emberwell',name:'EMBERWELL',symbol:'✦',description:'Restore two points of vital flame immediately.'},
+    {id:'starheart',name:'STARHEART',symbol:'◆',description:'Increase maximum flame by one and restore one flame.'},
+    {id:'brightsteel',name:'BRIGHTSTEEL',symbol:'◇',description:'Radiant Strike inflicts two damage on Watchers and the Eclipse Heart.'},
+    {id:'pilgrim',name:'PILGRIM FLAME',symbol:'☼',description:'Restore one flame when entering each later chamber.'}
   ];
   const WALL_SET=new Set(WALLS.map(([x,y])=>`${x},${y}`));
   const wall=(p,s)=>s?.walls ? s.walls.some(([x,y])=>x===p.x&&y===p.y) : WALL_SET.has(coord(p));
@@ -33,7 +38,7 @@
   const facing=(a,b)=>a.x===b.x?(a.y>b.y?'N':'S'):(a.x>b.x?'W':'E');
   function spawnEnemies(index){const counts={};return CHAMBERS[index].enemies.map(([kind,x,y,hp])=>{const label=String.fromCharCode(97+(counts[kind]||0));counts[kind]=(counts[kind]||0)+1;return {id:`${kind}-${label}`,kind,x,y,hp,maxHp:hp,lastKnown:(kind==='skitter'||kind==='heart')?{x:1,y:6}:null};});}
   function newGame(){return {
-    version:2,phase:'player',turn:1,ap:MAX_AP,roomIndex:0,relics:[],ward:0,
+    version:3,phase:'player',turn:1,ap:MAX_AP,roomIndex:0,relics:[],ward:0,
     walls:copy(CHAMBERS[0].walls),
     player:{x:1,y:6,hp:MAX_HP,maxHp:MAX_HP,facing:'E',lantern:true},
     enemies:spawnEnemies(0)
@@ -161,12 +166,14 @@
     if(s.phase==='reward' && action?.type==='CHOOSE_RELIC'){
       if(!RELICS.some(r=>r.id===action.id)||s.relics.includes(action.id))return invalid('Choose an available relic.');
       if(action.id==='emberwell')s.player.hp=Math.min(s.player.maxHp,s.player.hp+2);
+      if(action.id==='starheart'){s.player.maxHp++;s.player.hp=Math.min(s.player.maxHp,s.player.hp+1);}
       s.relics.push(action.id);
       s.roomIndex++;
       if(s.roomIndex>=CHAMBERS.length)return invalid('No chambers remain.');
       s.walls=copy(CHAMBERS[s.roomIndex].walls);
       s.enemies=spawnEnemies(s.roomIndex);
       Object.assign(s.player,{x:1,y:6,facing:'E',lantern:true});
+      if(s.relics.includes('pilgrim'))s.player.hp=Math.min(s.player.maxHp,s.player.hp+1);
       s.ward=s.relics.includes('ashward')?1:0;
       s.ap=MAX_AP;s.phase='player';
       return {state:s,events:[{type:'chamberStart',roomIndex:s.roomIndex,relic:action.id}],changed:true};
@@ -193,14 +200,39 @@
     }else if(action.type==='STRIKE'){
       const target=action.targetId?s.enemies.find(e=>e.id===action.targetId):nearestLit(s);
       if(!target||target.hp<=0||!illuminated(s,target))return invalid('Aim your lantern at a living enemy first.');
-      target.hp--;s.ap--;
-      events.push({type:'strike',targetId:target.id,to:{x:target.x,y:target.y},killed:target.hp===0});
+      const damage=s.relics.includes('brightsteel')&&(target.kind==='watcher'||target.kind==='heart')?2:1;
+      target.hp=Math.max(0,target.hp-damage);s.ap--;
+      events.push({type:'strike',targetId:target.id,to:{x:target.x,y:target.y},damage,killed:target.hp===0});
       if(s.enemies.every(e=>e.hp<=0)){
         if((s.roomIndex||0)===CHAMBERS.length-1){s.phase='won';events.push({type:'victory'});}
         else{s.phase='reward';events.push({type:'reward'});}
       }
     }else return invalid('Unknown action.');
     return {state:s,events,changed:true};
+  }
+  // Save files are user-controlled local data. Validate before restoring to avoid corrupt runs.
+  function loadable(s){
+    if(!s||s.version!==3||!Number.isInteger(s.roomIndex)||s.roomIndex<0||s.roomIndex>=CHAMBERS.length)return false;
+    if(!['player','reward'].includes(s.phase)||!Number.isInteger(s.turn)||s.turn<1)return false;
+    if(!Number.isInteger(s.ap)||s.ap<0||s.ap>MAX_AP)return false;
+    if(!Array.isArray(s.walls)||JSON.stringify(s.walls)!==JSON.stringify(CHAMBERS[s.roomIndex].walls))return false;
+    if(!Array.isArray(s.relics)||new Set(s.relics).size!==s.relics.length||s.relics.some(id=>!RELICS.some(r=>r.id===id))||s.relics.length>s.roomIndex)return false;
+    if(!Number.isInteger(s.ward)||s.ward<0||s.ward>1)return false;
+    const p=s.player;
+    if(!p||!passable(p,s)||!Object.hasOwn(DIRECTIONS,p.facing)||typeof p.lantern!=='boolean')return false;
+    if(!Number.isInteger(p.maxHp)||p.maxHp!==MAX_HP+(s.relics.includes('starheart')?1:0))return false;
+    if(!Number.isInteger(p.hp)||p.hp<=0||p.hp>p.maxHp)return false;
+    const template=spawnEnemies(s.roomIndex);
+    if(!Array.isArray(s.enemies)||s.enemies.length!==template.length)return false;
+    const occupiedPositions=new Set([coord(p)]);
+    for(let i=0;i<template.length;i++){
+      const e=s.enemies[i],b=template[i];
+      if(!e||e.id!==b.id||e.kind!==b.kind||e.maxHp!==b.maxHp||!passable(e,s))return false;
+      if(!Number.isInteger(e.hp)||e.hp<0||e.hp>e.maxHp)return false;
+      if(e.hp>0){if(occupiedPositions.has(coord(e)))return false;occupiedPositions.add(coord(e));}
+      if(e.lastKnown!==null&&e.lastKnown!==undefined&&!inside(e.lastKnown))return false;
+    }
+    return true;
   }
   function makeSession(){return {state:newGame(),history:[],lastEvents:[],message:'Find the light. Master the dark.'};}
   function dispatch(session,action){
@@ -232,5 +264,5 @@
       after:result.state
     };
   }
-  return {SIZE,MAX_HP,MAX_AP,BASE_RANGE,DIRECTIONS,WALLS,CHAMBERS,RELICS,wall,inside,passable,add,dist,coord,same,copy,newGame,beamCells,illuminated,clearLane,nearestLit,enemyPhase,reducer,makeSession,dispatch,preview};
+  return {SIZE,MAX_HP,MAX_AP,BASE_RANGE,DIRECTIONS,WALLS,CHAMBERS,RELICS,loadable,wall,inside,passable,add,dist,coord,same,copy,newGame,beamCells,illuminated,clearLane,nearestLit,enemyPhase,reducer,makeSession,dispatch,preview};
 });
