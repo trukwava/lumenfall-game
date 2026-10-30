@@ -4,7 +4,7 @@
 
 Lumenfall is a complete, self-contained **turn-based tactical browser game** about light and concealment. You are the last Lamplighter: illuminate enemies to strike them, but the same lantern reveals your position to predators.
 
-**Current development milestone: v0.5 — The Living Observatory.** The full six-chamber campaign, deterministic boss, multiple relic builds, replayable challenge seeds, and local save/resume are implemented. Browser compatibility and full visual QA are still in progress; this is not yet a final release certification.
+**Current development milestone: v0.5.1 — The Living Observatory.** The full six-chamber campaign, deterministic boss, multiple relic builds, replayable challenge seeds, and local save/resume are implemented. Browser compatibility and full visual QA are still in progress; this is not yet a final release certification.
 
 ## Play
 
@@ -96,10 +96,10 @@ Requires Node.js 20+ and no npm dependencies:
 node --test tests/*.test.cjs
 ```
 
-**56/56 checks passed in the isolated JavaScript harness against GitHub source at this milestone**, covering the complete legal-action winning route, 1,000 encounter seeds, save/resume, destructive-action safeguards, Canvas frame rendering, and the six environments. This is **not** a substitute for verifying the real GitHub Actions run or running browser-based end-to-end tests; those remain unconfirmed here.
+**60/60 checks passed in the isolated JavaScript harness against GitHub source at this milestone**, covering two complete legal-action winning routes (including shared challenge seed 183604), 1,000 encounter seeds, save/resume, destructive-action safeguards, Canvas frame rendering, and the six environments. This is **not** a substitute for verifying the real GitHub Actions run or running browser-based end-to-end tests; those remain unconfirmed here.
 
 ## Release readiness
 
-The game is functionally playable as a six-chamber campaign. Before labeling it a polished public release, complete the manual and browser QA steps in [docs/QA.md](docs/QA.md), including GitHub Pages, full gameplay, keyboard/mouse, reduced motion, sound, and Safari/Firefox/Chrome compatibility.
+The game is functionally playable as a six-chamber campaign. Before labeling it a polished public release, complete the manual and browser QA steps in [docs/QA.md](docs/QA.md), including GitHub Pages, full gameplay, keyboard/mouse, reduced motion, sound, and Safari/Firefox/Chrome compatibility. Follow the open [release QA gate](https://github.com/trukwava/lumenfall-game/issues/1) and the [changelog](CHANGELOG.md) for progress.
 
 All procedural artwork and synthesized audio are original to this repository. **No open-source license is granted by default.**
