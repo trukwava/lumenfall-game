@@ -35,6 +35,7 @@
               <p>Three actions. One dying flame.<br />The dark moves only when you do.</p>
               <label class="seed-picker" for="seedInput">CHALLENGE SEED <span>Leave blank for a unique descent</span></label>
               <input id="seedInput" class="seed-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="10" placeholder="Random seed" autocomplete="off" aria-label="Optional numeric seed to repeat an encounter" />
+              <div id="seedError" class="seed-error" role="alert"></div>
               <button class="gold-button" id="startBtn">BEGIN NEW DESCENT <span>→</span></button>
               <button class="gold-button continue-button" id="continueBtn" hidden>CONTINUE SAVED RUN <span>↪</span></button>
               <div class="start-footnote">Six chambers of light &amp; shadow · Progress saved automatically</div>
