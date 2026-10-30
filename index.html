@@ -4,9 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#090d18" />
+  <meta name="lumenfall-build" content="0.5.1" />
   <meta name="description" content="Lumenfall: six beautifully atmospheric chambers of turn-based light-and-shadow tactics, culminating in the Eclipse Heart." />
   <title>Lumenfall — The Last Lamplighter</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=0.5.1" />
 </head>
 <body>
   <div class="background-halo" aria-hidden="true"></div>
@@ -94,7 +95,7 @@
         <div class="sidebar-footer"><button id="soundBtn" class="secondary-text" title="Toggle sound">♪ SOUND ON</button><button id="replayBtn" class="secondary-text" title="Restart encounter">↻ RESTART</button><button id="motionBtn" class="secondary-text" title="Toggle animations">◌ MOTION ON</button></div>
       </aside>
     </div>
-    <footer class="footer"><div><span>✦</span> SEEK THE LIGHT. TRUST THE SHADOW.</div><div>WASD / ARROWS MOVE &nbsp;·&nbsp; SHIFT + ARROWS AIM &nbsp;·&nbsp; L TOGGLE &nbsp;·&nbsp; F STRIKE &nbsp;·&nbsp; ENTER COMMIT</div></footer>
+    <footer class="footer"><div><span>✦</span> SEEK THE LIGHT. TRUST THE SHADOW. <span>BUILD 0.5.1</span></div><div>WASD / ARROWS MOVE &nbsp;·&nbsp; SHIFT + ARROWS AIM &nbsp;·&nbsp; L TOGGLE &nbsp;·&nbsp; F STRIKE &nbsp;·&nbsp; ENTER COMMIT</div></footer>
   </main>
   <dialog id="restartDialog" class="help-dialog restart-dialog" aria-label="Confirm new descent">
     <div class="help-head"><span>REKINDLE YOUR FLAME?</span><button id="cancelRestartX" type="button" aria-label="Cancel restart">✕</button></div>
@@ -113,6 +114,6 @@
     <div class="codex-line">SKITTERS PURSUE LIGHT. WATCHERS FIRE ALONG CLEAR LANES. THE ECLIPSE HEART PULSES THROUGH WALLS WHEN IT IS CLOSE AND YOU ARE ILLUMINATED. ADJACENT FOES ATTACK EVEN IN THE DARK.</div>
     <button id="closeHelpGold" class="gold-button">I UNDERSTAND <span>✧</span></button>
   </dialog>
-  <script src="core.js"></script><script src="game.js"></script>
+  <script src="core.js?v=0.5.1"></script><script src="game.js?v=0.5.1"></script>
 </body>
 </html>
