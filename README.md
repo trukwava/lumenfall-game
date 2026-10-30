@@ -1,91 +1,105 @@
-# Lumenfall — The Last Lamplighter
+# ✦ Lumenfall — The Last Lamplighter
 
-A dark-fantasy, turn-based tactical browser game: **light is both your weapon and your liability**.
+**Six chambers. Three actions per turn. One dying flame.**
 
-**Milestone 4: Six-Chamber Descent (v0.4).** The full planned six-chamber structure, persistent relic selections, a boss encounter, win/lose loop, and local save/resume are implemented. This is a gameplay-complete first campaign **candidate**, not yet a fully browser-QA-verified release.
+Lumenfall is a complete, self-contained **turn-based tactical browser game** about light and concealment. You are the last Lamplighter: illuminate enemies to strike them, but the same lantern reveals your position to predators.
+
+**Current development milestone: v0.5 — The Living Observatory.** The full six-chamber campaign, deterministic boss, multiple relic builds, replayable challenge seeds, and local save/resume are implemented. Browser compatibility and full visual QA are still in progress; this is not yet a final release certification.
 
 ## Play
 
-**[Play Lumenfall on GitHub Pages](https://trukwava.github.io/lumenfall-game/)**. Hosting requires GitHub Pages to be enabled for the `main` branch at `/(root)`. The deployment has not yet been independently confirmed in this session.
+**[Play in the browser (GitHub Pages)](https://trukwava.github.io/lumenfall-game/)**
 
-You can also clone/download the repository and open `index.html` in a modern browser. The game has no runtime dependencies, backend, accounts, or external art assets.
+GitHub Pages must be configured for the `main` branch and `/(root)`. A successful live deployment has **not been independently confirmed** in this conversation. Alternatively, clone or download this repository and open `index.html` in a modern desktop browser. No dependencies, backend, accounts, or asset downloads are required.
 
-## Gameplay and controls
+## The game
 
-Each player turn provides 3 action points. Illuminate enemies to make Radiant Strike available. The light also makes you vulnerable to ranged Watchers and the Eclipse Heart. Turning off the lantern conceals you from distant threats, but adjacent enemies still attack. A visible enemy-intent panel previews the exact committed enemy phase.
+Traverse six authored rooms, each with a different atmospheric treatment and enemy formation:
+
+| Act | Room | Challenge |
+|---|---|---|
+| I | The Shattered Passage | Your first encounter with Skitters and a Watcher |
+| I | The Veiled Gallery | A new arrangement of cover and firing lanes |
+| II | The Starless Altar | Four enemies; hide, reposition, and choose your attacks |
+| II | The Cinder Labyrinth | Constricted routes through ember-lit stone |
+| III | The Mirror Vault | Watchers guard competing firing lanes |
+| III | The Eclipse Sanctum | Defeat the five-health **Eclipse Heart** boss |
+
+There are **3 action points per player turn**. Movement, lantern aiming, toggling the lantern, and Radiant Strike each cost 1 AP. Ending your turn commits the enemy phase. The game previews each enemy's exact action and predicted damage before you commit.
+
+Light enables your attack, but exposed players can be targeted by Watchers and the Eclipse Heart. Shadow hides you from distant ranged attacks, not adjacent enemies. The boss's periodic close-range pulse ignores walls when the player is illuminated.
+
+### Controls
 
 | Input | Action |
 |---|---|
-| WASD / arrow keys | Move one tile (1 AP) |
-| Shift + arrow keys | Aim lantern (1 AP) |
-| L | Toggle lantern (1 AP) |
-| F | Strike the nearest illuminated enemy (1 AP) |
-| Enter | End turn, resolve enemy intents |
-| Z | Undo an action within the current turn |
-| Mouse | Select enemies, move to adjacent tiles, use HUD controls |
-| H / ? | Help |
+| WASD / arrow keys | Move one orthogonal tile |
+| Shift + arrow keys | Rotate the lantern |
+| L | Toggle lantern on/off |
+| F | Strike nearest illuminated enemy |
+| Mouse / tap | Select an illuminated enemy, move one tile, use buttons |
+| Enter | Resolve the enemy turn |
+| Z | Undo an action before ending the turn |
+| H / ? | Open instructions |
+| R | Request a new run (requires confirmation) |
 
-Clear all six authored rooms in sequence:
+### Relics
 
-1. The Shattered Passage
-2. The Veiled Gallery
-3. The Starless Altar
-4. The Cinder Labyrinth
-5. The Mirror Vault
-6. The Eclipse Sanctum — **Eclipse Heart boss**
+After the first five rooms, choose one relic that lasts for the current run. Relics cannot be selected twice.
 
-Health and relics carry between rooms. There are five relic selections, after rooms 1–5. The six unique relics are:
+- **Longwick** — +1 lantern range.
+- **Ash Ward** — Negates the first enemy hit in each later chamber.
+- **Emberwell** — Restore 2 health immediately, up to your maximum.
+- **Starheart** — Increase maximum health by 1 and heal 1.
+- **Brightsteel** — Deal 2 damage instead of 1 to Watchers and the Eclipse Heart.
+- **Pilgrim Flame** — Heal 1 upon entering subsequent chambers.
 
-| Relic | Effect |
-|---|---|
-| Longwick | +1 lantern range |
-| Ash Ward | Negates the first enemy hit in each subsequent chamber |
-| Emberwell | Heal 2 immediately, capped by maximum health |
-| Starheart | +1 maximum health and heal 1 immediately |
-| Brightsteel | Deal 2 damage to Watchers and the Eclipse Heart with Radiant Strike |
-| Pilgrim Flame | Heal 1 when entering each later chamber |
+## Replayable seeded encounters
 
-The Eclipse Heart has five health, pursues the player's last-known position, attacks along clear lanes, and pulses at close range on alternating turns if the player is illuminated. As with other enemies, its intent is deterministic and previewable.
+Leave the **Challenge Seed** field blank to generate a new arrangement of enemy starting positions on the authored maps. Enter an unsigned 32-bit number, such as `123456`, to repeat the same arrangement. **Seed 0** is the original, fixed campaign used by the canonical full-run regression.
 
-## Save and resume
+When playing on the HTTPS GitHub Pages site, select **COPY** above the board to share a link such as:
 
-Your browser automatically saves after successful actions. On reload, **Continue Saved Run** appears if a valid save exists, and restores your position, health, AP, chamber, relics, and enemy states. The current turn's undo history does **not** survive reload. Starting a new game replaces the saved run; victory or defeat clears the active save. Data stays in your browser's local storage.
+`https://trukwava.github.io/lumenfall-game/?seed=123456`
 
-Save validation rejects corrupted or incompatible game states. Browser privacy settings may disable local storage, in which case gameplay continues but progress cannot be saved.
+Opening a shared link pre-fills the numeric seed. Random enemy spawns are constrained to accessible, valid positions, with a seeded deterministic algorithm. Room geometry and enemy types stay authored.
+
+A personal-best victory record (fewest turns, then most remaining health) is stored locally, including its seed.
+
+## Saving, privacy, and accessibility
+
+Your current run is saved automatically in **localStorage** after successful actions. On refresh, **Continue Saved Run** restores chamber, player and enemy state, AP, relics, and seed. The current turn's undo history is not retained across refresh. Starting a new descent or confirming restart replaces the saved run; victory or defeat clears it.
+
+Settings and personal bests are saved locally. There is no user account, analytics service, backend, or data upload. If storage is disabled, gameplay still works but persistence may not.
+
+Accessibility features include keyboard controls, explicit threat descriptions, an accessible tactical-state announcement, high-contrast and reduced-motion preferences, independently toggled sound/motion settings, and a confirmation before destructive restart. A full assistive-technology audit is still outstanding.
 
 ## Architecture
 
-- `core.js`: renderer-independent, deterministic game rules, combat, line-of-sight, enemy phases, relics, progression and state validation
-- `game.js`: Canvas renderer, player input, animations, synthesized audio, auto-saving, and UI integration
-- `index.html`, `style.css`: menus, responsive interface, and relic selection
-- `tests/core.test.cjs`: core mechanics and intent-preview consistency
-- `tests/campaign.test.cjs`: chamber transitions, boss mechanics, relic effects, and save-state validation
-- `tests/interface.test.cjs`: static entrypoint and DOM integration checks
-- `tests/runtime.test.cjs`: dependency-free UI initialization, combat persistence, resume, and relic-screen interaction tests
-- `.github/workflows/tests.yml`: automated testing on commits and PRs
+| File | Responsibility |
+|---|---|
+| `core.js` | Pure deterministic combat simulation, enemy AI, seeded spawns, progression, save validation |
+| `game.js` | Canvas rendering, chamber atmosphere, input, animation, audio, UI, save/resume and records |
+| `index.html` | Semantic UI, controls, dialogs, game entrypoint |
+| `style.css` | Responsive dark-fantasy visual design and accessibility overrides |
+| `tests/*.test.cjs` | Core rules, campaign, winning route, seed fuzzing, Canvas and UI smoke tests |
+| `.github/workflows/tests.yml` | Node.js test workflow for pushes and pull requests |
+| `docs/QA.md` | Manual browser QA plan and known limitations |
 
-## Test
+The simulation never reads frame rate or rendering state. The Canvas layer consumes deterministic game-state snapshots. Enemy intentions are computed once on state changes and reused during animation frames.
 
-Node.js 20+:
+## Running tests
 
-```bash
+Requires Node.js 20+ and no npm dependencies:
+
+```sh
 node --test tests/*.test.cjs
 ```
 
-**40/40 checks passed** against the current GitHub source in an isolated JavaScript test harness, including runtime startup/resume simulations. Syntax was also checked for all JavaScript source and test files. The GitHub Actions result and end-to-end browser playthrough have not been independently verified in this conversation; they should be checked before declaring release readiness.
+**56/56 checks passed in the isolated JavaScript harness against GitHub source at this milestone**, covering the complete legal-action winning route, 1,000 encounter seeds, save/resume, destructive-action safeguards, Canvas frame rendering, and the six environments. This is **not** a substitute for verifying the real GitHub Actions run or running browser-based end-to-end tests; those remain unconfirmed here.
 
-## Publish with GitHub Pages
+## Release readiness
 
-Open [Settings → Pages](https://github.com/trukwava/lumenfall-game/settings/pages), set **Deploy from a branch → main → /(root)**, and save. The expected published address is:
+The game is functionally playable as a six-chamber campaign. Before labeling it a polished public release, complete the manual and browser QA steps in [docs/QA.md](docs/QA.md), including GitHub Pages, full gameplay, keyboard/mouse, reduced motion, sound, and Safari/Firefox/Chrome compatibility.
 
-https://trukwava.github.io/lumenfall-game/
-
-## Remaining priorities
-
-- Run an end-to-end browser playthrough covering all six rooms, relic screens, boss, reload/resume, and failure states.
-- Balance accumulated damage and relic availability to keep the entire campaign consistently winnable.
-- Improve the boss's warning animations and arena identity.
-- Add seeded encounter variation and richer post-run statistics.
-- Validate Chrome, Firefox, Safari and narrower mobile viewports, including reduced-motion preferences.
-
-This repository contains original procedural art and self-contained synthesized audio. No explicit license for reuse has been granted.
+All procedural artwork and synthesized audio are original to this repository. **No open-source license is granted by default.**
