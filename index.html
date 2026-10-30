@@ -83,6 +83,12 @@
         </section>
         <section class="panel actions-panel">
           <div class="panel-heading"><span>COMMANDS</span><span class="muted">3 AP / TURN</span></div>
+          <div class="command-row move-command"><div class="direction-grid move-grid" role="group" aria-label="Move one tile">
+            <button type="button" id="moveN" aria-label="Move north">↑</button>
+            <button type="button" id="moveW" aria-label="Move west">←</button>
+            <button type="button" id="moveS" aria-label="Move south">↓</button>
+            <button type="button" id="moveE" aria-label="Move east">→</button>
+          </div><div class="direction-text"><strong>MOVE YOUR LAMPLIGHTER</strong><span>Step one tile at a time. Walls and enemies block movement.</span></div></div>
           <div class="command-row"><div class="direction-grid"><button id="aimN" title="Aim north (Shift+↑)">↑</button><button id="aimW" title="Aim west (Shift+←)">←</button><button id="aimS" title="Aim south (Shift+↓)">↓</button><button id="aimE" title="Aim east (Shift+→)">→</button></div><div class="direction-text"><strong>DIRECT YOUR LIGHT</strong><span>Choose where your lantern shines.</span></div></div>
           <div class="action-buttons"><button id="strikeBtn" class="action-button primary"><span class="action-icon">✶</span><span><strong>RADIANT STRIKE</strong><small>Attack a lit foe · F</small></span></button><button id="undoBtn" class="action-button"><span class="action-icon">↶</span><span><strong>UNDO</strong><small>Rewind action · Z</small></span></button></div>
           <button class="end-turn" id="endBtn">END TURN <span>↵</span></button>
@@ -110,7 +116,7 @@
     <div class="help-head"><span>THE LAMPLIGHTER'S CODEX</span><button id="closeHelp" aria-label="Close instructions">✕</button></div>
     <h2>Light reveals.<br /><em>Darkness protects.</em></h2>
     <p>Defeat every shadow across six chambers to survive. Choose a relic after clearing each non-final chamber. You have <strong>3 action points</strong> each turn. Move, aim, toggle the lantern or strike for 1 AP each, then end your turn to let enemies act.</p>
-    <ul><li><strong>Move:</strong> arrow keys / WASD, or click an adjacent tile.</li><li><strong>Aim:</strong> Shift + arrows, or the four direction buttons.</li><li><strong>Toggle:</strong> L or click the lantern switch. Turning off hides you from distant Watchers.</li><li><strong>Strike:</strong> F or click an illuminated enemy. Only enemies touched by your lantern beam can be struck.</li><li><strong>Rewind:</strong> Z undoes actions before you end the turn.</li><li><strong>Commit:</strong> Enter ends the turn. Red warnings and dotted arrows preview exactly what enemies will do.</li></ul>
+    <ul><li><strong>Move:</strong> arrow keys / WASD, the move buttons, or click an adjacent tile.</li><li><strong>Aim:</strong> Shift + arrows, or the four direction buttons.</li><li><strong>Toggle:</strong> L or click the lantern switch. Turning off hides you from distant Watchers.</li><li><strong>Strike:</strong> F or click an illuminated enemy. Only enemies touched by your lantern beam can be struck.</li><li><strong>Rewind:</strong> Z undoes actions before you end the turn.</li><li><strong>Commit:</strong> Enter ends the turn. Red warnings and dotted arrows preview exactly what enemies will do.</li></ul>
     <div class="codex-line">SKITTERS PURSUE LIGHT. WATCHERS FIRE ALONG CLEAR LANES. THE ECLIPSE HEART PULSES THROUGH WALLS WHEN IT IS CLOSE AND YOU ARE ILLUMINATED. ADJACENT FOES ATTACK EVEN IN THE DARK.</div>
     <button id="closeHelpGold" class="gold-button">I UNDERSTAND <span>✧</span></button>
   </dialog>
