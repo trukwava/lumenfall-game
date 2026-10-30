@@ -83,3 +83,20 @@ test('seeded enemy intent preview still agrees with actual resolution',()=>{
   }
  }
 });
+
+test('a bogus post-boss relic screen cannot be restored from storage',()=>{
+ let s=C.newGame();
+ for(let room=0;room<5;room++){
+  const fixture=C.copy(s);
+  fixture.enemies.slice(1).forEach(e=>e.hp=0);
+  fixture.enemies[0].hp=1;fixture.enemies[0].x=2;fixture.enemies[0].y=6;
+  Object.assign(fixture.player,{x:1,y:6,facing:'E',lantern:true});fixture.ap=3;
+  const cleared=C.reducer(fixture,{type:'STRIKE'});
+  s=C.reducer(cleared.state,{type:'CHOOSE_RELIC',id:C.RELICS[room].id}).state;
+ }
+ assert.equal(s.roomIndex,5);
+ assert.equal(C.loadable(s),true);
+ s.enemies.forEach(e=>e.hp=0);
+ s.phase='reward';
+ assert.equal(C.loadable(s),false);
+});
