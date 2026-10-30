@@ -18,7 +18,8 @@
   const CHAMBERS=[
     {name:'THE SHATTERED PASSAGE',walls:WALLS,enemies:[['skitter',5,6,1],['skitter',6,3,1],['watcher',2,2,2]]},
     {name:'THE VEILED GALLERY',walls:[[2,1],[2,2],[5,1],[5,2],[2,4],[5,4],[2,5]],enemies:[['skitter',4,6,1],['skitter',6,5,1],['watcher',3,2,2]]},
-    {name:'THE STARLESS ALTAR',walls:[[3,1],[4,1],[2,3],[5,3],[3,4],[4,4],[2,5],[5,5]],enemies:[['skitter',6,6,1],['skitter',5,4,1],['watcher',1,2,2],['watcher',6,2,2]]}
+    {name:'THE STARLESS ALTAR',walls:[[3,1],[4,1],[2,3],[5,3],[3,4],[4,4],[2,5],[5,5]],enemies:[['skitter',6,6,1],['skitter',5,4,1],['watcher',1,2,2],['watcher',6,2,2]]},
+    {name:'THE ECLIPSE SANCTUM',walls:[[2,2],[5,2],[2,5],[5,5],[3,3],[4,3]],enemies:[['heart',5,4,5],['skitter',6,6,1]]}
   ];
   const RELICS=[
     {id:'longwick',name:'LONGWICK',symbol:'✧',description:'Lantern range increases by one tile.'},
@@ -30,7 +31,7 @@
   const add=(p,d)=>({x:p.x+DIRECTIONS[d].x,y:p.y+DIRECTIONS[d].y});
   const passable=(p,s)=>inside(p)&&!wall(p,s);
   const facing=(a,b)=>a.x===b.x?(a.y>b.y?'N':'S'):(a.x>b.x?'W':'E');
-  function spawnEnemies(index){const counts={};return CHAMBERS[index].enemies.map(([kind,x,y,hp])=>{const label=String.fromCharCode(97+(counts[kind]||0));counts[kind]=(counts[kind]||0)+1;return {id:`${kind}-${label}`,kind,x,y,hp,maxHp:hp,lastKnown:kind==='skitter'?{x:1,y:6}:null};});}
+  function spawnEnemies(index){const counts={};return CHAMBERS[index].enemies.map(([kind,x,y,hp])=>{const label=String.fromCharCode(97+(counts[kind]||0));counts[kind]=(counts[kind]||0)+1;return {id:`${kind}-${label}`,kind,x,y,hp,maxHp:hp,lastKnown:(kind==='skitter'||kind==='heart')?{x:1,y:6}:null};});}
   function newGame(){return {
     version:2,phase:'player',turn:1,ap:MAX_AP,roomIndex:0,relics:[],ward:0,
     walls:copy(CHAMBERS[0].walls),
@@ -120,6 +121,21 @@
       const from={x:e.x,y:e.y},p={x:s.player.x,y:s.player.y};
       if(dist(e,p)===1){
         enemyHit(s,events,e,from,p);
+        continue;
+      }
+      if(e.kind==='heart'){
+        // Pulses every second enemy phase; the same exact resolution is used by previews.
+        if(s.turn%2===0 && s.player.lantern && dist(e,p)<=2){
+          enemyHit(s,events,e,from,p);
+          events.push({type:'heartPulse',enemyId:e.id,from});
+        }else if(s.player.lantern&&clearLane(e,p,4,s)){
+          enemyHit(s,events,e,from,p);
+        }else{
+          if(s.player.lantern)e.lastKnown={x:p.x,y:p.y};
+          const step=nextStep(s,from,e.lastKnown,e.id);
+          if(step){e.x=step.x;e.y=step.y;events.push({type:'enemyMove',enemyId:e.id,from,to:{x:e.x,y:e.y}});}
+          else events.push({type:'enemyWait',enemyId:e.id,from});
+        }
         continue;
       }
       if(e.kind==='watcher'){
