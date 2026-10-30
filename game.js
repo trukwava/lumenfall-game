@@ -24,7 +24,7 @@ function playTone(kind){
 }
 function particleBurst(pos,color,count=20){if(!motionOn)return;for(let i=0;i<count;i++){const a=TAU*rnd(i,pos.x,i*3),v=22+rnd(i,pos.y,2)*110;particles.push({x:pos.x,y:pos.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-12,life:.3+rnd(i,pos.x,4)*.8,age:0,r:1+rnd(i,pos.y,7)*3,color});}}
 function onAction(action){
- if(!started||session.state.phase!=='player')return;
+ if(!started||!(session.state.phase==='player'||(session.state.phase==='reward'&&action.type==='CHOOSE_RELIC')))return;
  const beforeHp=session.state.player.hp;
  const result=C.dispatch(session,action);
  if(result){
@@ -35,18 +35,29 @@ function onAction(action){
    else if(e.type==='lantern')playTone(e.on?'toggleOn':'toggleOff');
    else if(e.type==='enemyAttack'){particleBurst(centre(e.target),'#e57787',22);shake=motionOn?7:0;playTone('hurt');}
    else if(e.type==='undo')playTone('undo');
+   else if(e.type==='reward')playTone('win');
+   else if(e.type==='chamberStart'){playTone('toggleOn');particles=[];$('rewardOverlay').classList.remove('visible');}
    else if(e.type==='victory')playTone('win');
    else if(e.type==='defeat')playTone('lose');
   }
   if(action.type==='END_TURN'&&beforeHp===session.state.player.hp)playTone('end');
-  if(session.state.phase!=='player')showResult();
+  if(session.state.phase==='reward')showReward();
+  else if(session.state.phase!=='player')showResult();
  }else playTone('bad');
  updateHUD();
+}
+function showReward(){
+ $('rewardOverlay').classList.add('visible');
+ $('rewardChamber').textContent=`CHAMBER ${session.state.roomIndex+1} CLEARED`;
+ $('rewardOptions').innerHTML=C.RELICS.filter(r=>!session.state.relics.includes(r.id)).map(r=>`<button class="relic-card" data-relic="${r.id}"><span class="relic-symbol">${r.symbol}</span><span><strong>${r.name}</strong><small>${r.description}</small></span><span class="relic-arrow">➜</span></button>`).join('');
 }
 function showResult(){const won=session.state.phase==='won';$('resultOverlay').classList.add('visible');$('resultSymbol').textContent=won?'✦':'◈';$('resultEyebrow').textContent=won?'THE SHADOWS ARE SILENT':'THE LANTERN GOES DARK';$('resultTitle').textContent=won?'DAWN RETURNS':'FALLEN';$('resultText').textContent=won?'For one more night, the stars remember their names.':'Even the last flame may be rekindled.';$('resultStat').textContent=`${won?'CLEARED':'SURVIVED'} • TURN ${String(session.state.turn).padStart(2,'0')} • ${session.state.player.hp} FLAME REMAINING`;}
 function updateHUD(){
  const s=session.state,p=s.player,pr=C.preview(s);
  $('turnLabel').textContent=`TURN ${String(s.turn).padStart(2,'0')}`;
+ $('chamberLabel').textContent=C.CHAMBERS[s.roomIndex].name;
+ $('sectorLabel').textContent=`CHAMBER ${String(s.roomIndex+1).padStart(2,'0')} / ${String(C.CHAMBERS.length).padStart(2,'0')} // 08×08`;
+ $('relicStatus').textContent=s.relics.length?`RELICS: ${s.relics.map(id=>C.RELICS.find(r=>r.id===id).name).join(' · ')}${s.ward?' · WARD READY':''}`:'NO RELICS YET';
  $('hpLabel').textContent=`${p.hp} / ${p.maxHp}`;
  $('hearts').innerHTML=Array.from({length:p.maxHp},(_,i)=>`<span class="heart ${i>=p.hp?'empty':''}" aria-hidden="true">${i<p.hp?'◆':'◇'}</span>`).join('');
  $('apLabel').textContent=`${s.ap} AVAILABLE`;
@@ -64,7 +75,7 @@ function updateHUD(){
  const pretty={skitter:'Skitter',watcher:'Watcher'},name=e=>pretty[e.kind]||'Shade';
  $('previewList').innerHTML=pr.events.filter(e=>e.type!=='newTurn').map(e=>{
    const enemy=s.enemies.find(q=>q.id===e.enemyId);if(!enemy)return '';
-   if(e.type==='enemyAttack')return `<div class="intent attack"><div class="intent-icon">✕</div><span><strong>${name(enemy)}</strong> strikes you for 1</span></div>`;
+   if(e.type==='enemyAttack')return `<div class="intent ${e.blocked?'wait':'attack'}"><div class="intent-icon">${e.blocked?'◇':'✕'}</div><span><strong>${name(enemy)}</strong> ${e.blocked?'is blocked by Ash Ward':'strikes you for 1'}</span></div>`;
    if(e.type==='enemyMove')return `<div class="intent"><div class="intent-icon">↗</div><span><strong>${name(enemy)}</strong> advances toward ${e.to.x+1},${e.to.y+1}</span></div>`;
    return `<div class="intent wait"><div class="intent-icon">◌</div><span><strong>${name(enemy)}</strong> holds position</span></div>`;
  }).join('')||'<div class="intent wait">No threats remain.</div>';
@@ -158,7 +169,7 @@ function drawHover(s){if(!hover||s.phase!=='player')return;const p=hover;
  let allowed=false,color='#bdaca1';
  const e=s.enemies.find(q=>q.hp>0&&C.same(q,p));
  if(e&&C.illuminated(s,p)&&s.ap>0){allowed=true;color='#f6d58b';}
- else if(C.dist(s.player,p)===1&&C.passable(p)&&!s.enemies.some(q=>q.hp>0&&C.same(q,p))&&s.ap>0){allowed=true;color='#f6d58b';}
+ else if(C.dist(s.player,p)===1&&C.passable(p,s)&&!s.enemies.some(q=>q.hp>0&&C.same(q,p))&&s.ap>0){allowed=true;color='#f6d58b';}
  ctx.fillStyle=allowed?'#ecc17228':'#00000010';ctx.fillRect(x+3,y+3,G-6,G-6);ctx.strokeStyle=color;ctx.lineWidth=2;ctx.strokeRect(x+3,y+3,G-6,G-6);
 }
 function drawParticles(dt){for(const p of particles){p.age+=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=18*dt;if(p.age<p.life){ctx.globalAlpha=(1-p.age/p.life)*.9;diamond(p.x,p.y,p.r,p.color);}}ctx.globalAlpha=1;particles=particles.filter(p=>p.age<p.life);}
@@ -169,7 +180,7 @@ function drawFrame(ts){const dt=Math.min((ts-lastFrame)/1000||0,.06);lastFrame=t
  ctx.fillStyle='#0a1022';ctx.fillRect(O-7,O-7,G*8+14,G*8+14);
  for(let y=0;y<C.SIZE;y++)for(let x=0;x<C.SIZE;x++)floorTile(x,y,t);
  drawBeam(session.state,t);
- for(const [x,y] of C.WALLS)wallTile({x,y});
+ for(const [x,y] of session.state.walls)wallTile({x,y});
  drawPreview(session.state);
  for(const e of session.state.enemies){if(e.hp<=0)continue;if(e.kind==='watcher')drawWatcher(e,t);else drawSkitter(e,t);enemyHP(e);}
  drawPlayer(session.state,t);
@@ -179,8 +190,8 @@ function drawFrame(ts){const dt=Math.min((ts-lastFrame)/1000||0,.06);lastFrame=t
  for(let i=0;i<4;i++){const x=i%2===0?O-7:O+G*8+7,y=i<2?O-7:O+G*8+7;line(x-10,y,x+10,y,'#d9b66c',2);line(x,y-10,x,y+10,'#d9b66c',2);}
  ctx.restore();requestAnimationFrame(drawFrame);
 }
-function start(){session=C.makeSession();particles=[];started=true;$('startOverlay').classList.remove('visible');$('resultOverlay').classList.remove('visible');updateHUD();playTone('toggleOn');}
-function restart(){if(!started){start();return;}C.dispatch(session,{type:'RESTART'});particles=[];$('resultOverlay').classList.remove('visible');updateHUD();playTone('toggleOn');}
+function start(){session=C.makeSession();particles=[];started=true;$('startOverlay').classList.remove('visible');$('resultOverlay').classList.remove('visible');$('rewardOverlay').classList.remove('visible');updateHUD();playTone('toggleOn');}
+function restart(){if(!started){start();return;}C.dispatch(session,{type:'RESTART'});particles=[];$('resultOverlay').classList.remove('visible');$('rewardOverlay').classList.remove('visible');updateHUD();playTone('toggleOn');}
 function movement(dir,aim=false){onAction({type:aim?'AIM':'MOVE',direction:dir});}
 function clickBoard(ev){if(!started||session.state.phase!=='player')return;const bounds=canvas.getBoundingClientRect();const x=(ev.clientX-bounds.left)*W/bounds.width,y=(ev.clientY-bounds.top)*W/bounds.height,p={x:Math.floor((x-O)/G),y:Math.floor((y-O)/G)};
  if(!C.inside(p))return;const e=session.state.enemies.find(q=>q.hp>0&&C.same(q,p));if(e){onAction({type:'STRIKE',targetId:e.id});return;}
@@ -188,6 +199,7 @@ function clickBoard(ev){if(!started||session.state.phase!=='player')return;const
 }
 function moveHover(ev){const b=canvas.getBoundingClientRect(),x=(ev.clientX-b.left)*W/b.width,y=(ev.clientY-b.top)*W/b.height,p={x:Math.floor((x-O)/G),y:Math.floor((y-O)/G)};hover=C.inside(p)?p:null;}
 canvas.addEventListener('pointermove',moveHover);canvas.addEventListener('pointerleave',()=>hover=null);canvas.addEventListener('click',clickBoard);
+$('rewardOptions').addEventListener('click',ev=>{const btn=ev.target.closest('[data-relic]');if(btn)onAction({type:'CHOOSE_RELIC',id:btn.dataset.relic});});
 $('startBtn').addEventListener('click',start);$('restartOverlayBtn').addEventListener('click',restart);$('replayBtn').addEventListener('click',restart);
 $('toggleBtn').addEventListener('click',()=>onAction({type:'TOGGLE_LANTERN'}));$('strikeBtn').addEventListener('click',()=>onAction({type:'STRIKE'}));$('undoBtn').addEventListener('click',()=>{if(!started)return;C.dispatch(session,{type:'UNDO'});updateHUD();playTone('undo');});$('endBtn').addEventListener('click',()=>onAction({type:'END_TURN'}));
 for(const d of ['N','E','S','W'])$('aim'+d).addEventListener('click',()=>movement(d,true));
