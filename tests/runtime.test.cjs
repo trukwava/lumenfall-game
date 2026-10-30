@@ -10,7 +10,7 @@ const isolated={};
 new Function('globalThis',coreSource)(isolated);
 const C=isolated.LumenCore;
 
-function boot(store){
+function boot(store,location=null){
  const elements={},handlers={};
  const clazz=()=>({add(){},remove(){},toggle(){}});
  function element(id){
@@ -28,7 +28,7 @@ function boot(store){
   getElementById(id){assert.ok(ids.has(id),'missing DOM element '+id);return element(id);},
   querySelector(){return element('synthetic');},body:{}
  };
- const window={LumenCore:C,devicePixelRatio:1,addEventListener(type,fn){handlers['window:'+type]=fn;}};
+ const window={LumenCore:C,devicePixelRatio:1,location,addEventListener(type,fn){handlers['window:'+type]=fn;}};
  const localStorage={
   getItem:key=>store.has(key)?store.get(key):null,
   setItem:(key,value)=>store.set(key,value),
@@ -125,4 +125,19 @@ test('UI completes all six chambers, saves personal best, and clears active run'
  assert.equal(best.turns,18);assert.equal(best.hp,7);assert.equal(best.seed,0);
  const reloaded=boot(store);
  assert.match(reloaded.elements.recordLine.textContent,/PERSONAL BEST/);
+});
+
+test('shared challenge URL pre-fills a reproducible encounter seed',()=>{
+ const location={search:'?seed=183604&mode=classic',protocol:'https:',origin:'https://trukwava.github.io',pathname:'/lumenfall-game/'};
+ const store=new Map(),ui=boot(store,location);
+ assert.equal(ui.elements.seedInput.value,'183604');
+ ui.handlers['startBtn:click']();
+ const saved=JSON.parse(store.get('lumenfall-run-v3')).state;
+ assert.equal(saved.seed,183604);
+ assert.deepEqual(saved.enemies,C.newGame(183604).enemies);
+});
+
+test('invalid out-of-range challenge URLs do not override default seed input',()=>{
+ const store=new Map(),ui=boot(store,{search:'?seed=999999999999'});
+ assert.equal(ui.elements.seedInput.value,'0');
 });
