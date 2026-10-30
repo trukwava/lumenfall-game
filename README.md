@@ -37,7 +37,7 @@ Light enables your attack, but exposed players can be targeted by Watchers and t
 | Shift + arrow keys | Rotate the lantern |
 | L | Toggle lantern on/off |
 | F | Strike nearest illuminated enemy |
-| Mouse / tap | Select an illuminated enemy, move one tile, use buttons |
+| Mouse / tap | Select an illuminated enemy, move one tile, use movement or aim buttons |
 | Enter | Resolve the enemy turn |
 | Z | Undo an action before ending the turn |
 | H / ? | Open instructions |
@@ -72,7 +72,7 @@ Your current run is saved automatically in **localStorage** after successful act
 
 Settings and personal bests are saved locally. There is no user account, analytics service, backend, or data upload. If storage is disabled, gameplay still works but persistence may not.
 
-Accessibility features include keyboard controls, explicit threat descriptions, an accessible tactical-state announcement, high-contrast and reduced-motion preferences, independently toggled sound/motion settings, and a confirmation before destructive restart. A full assistive-technology audit is still outstanding.
+Accessibility features include a dedicated touch-friendly movement pad, keyboard controls, explicit threat descriptions, an accessible tactical-state announcement, high-contrast and reduced-motion preferences, independently toggled sound/motion settings, and a confirmation before destructive restart. A full assistive-technology audit is still outstanding.
 
 ## Architecture
 
@@ -96,7 +96,7 @@ Requires Node.js 20+ and no npm dependencies:
 node --test tests/*.test.cjs
 ```
 
-**60/60 checks passed in the isolated JavaScript harness against GitHub source at this milestone**, covering two complete legal-action winning routes (including shared challenge seed 183604), 1,000 encounter seeds, save/resume, destructive-action safeguards, Canvas frame rendering, and the six environments. This is **not** a substitute for verifying the real GitHub Actions run or running browser-based end-to-end tests; those remain unconfirmed here.
+**61/61 checks passed in the isolated JavaScript harness against GitHub source at this milestone**, covering two complete legal-action winning routes (including shared challenge seed 183604), 1,000 encounter seeds, save/resume, destructive-action safeguards, Canvas frame rendering, and the six environments. This is **not** a substitute for verifying the real GitHub Actions run or running browser-based end-to-end tests; those remain unconfirmed here.
 
 ## Release readiness
 
