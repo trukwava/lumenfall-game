@@ -36,12 +36,31 @@
   const add=(p,d)=>({x:p.x+DIRECTIONS[d].x,y:p.y+DIRECTIONS[d].y});
   const passable=(p,s)=>inside(p)&&!wall(p,s);
   const facing=(a,b)=>a.x===b.x?(a.y>b.y?'N':'S'):(a.x>b.x?'W':'E');
-  function spawnEnemies(index){const counts={};return CHAMBERS[index].enemies.map(([kind,x,y,hp])=>{const label=String.fromCharCode(97+(counts[kind]||0));counts[kind]=(counts[kind]||0)+1;return {id:`${kind}-${label}`,kind,x,y,hp,maxHp:hp,lastKnown:(kind==='skitter'||kind==='heart')?{x:1,y:6}:null};});}
-  function newGame(){return {
-    version:3,phase:'player',turn:1,ap:MAX_AP,roomIndex:0,relics:[],ward:0,
+  // Bounded spawn variations on authored floorplans; seeded and deterministic.
+  // Seed zero preserves the original handcrafted encounter exactly.
+  function spawnEnemies(index,seed=0){
+    const counts={},used=new Set();
+    return CHAMBERS[index].enemies.map(([kind,x,y,hp],i)=>{
+      const label=String.fromCharCode(97+(counts[kind]||0));counts[kind]=(counts[kind]||0)+1;
+      let pos={x,y};
+      if(seed){
+        const options=[pos,...ORDER.map(d=>add(pos,d))]
+          .filter(p=>passable(p,{walls:CHAMBERS[index].walls})&&dist(p,{x:1,y:6})>1&&!used.has(coord(p)));
+        let hash=(seed^Math.imul(index+1,0x9e3779b1)^Math.imul(i+1,0x85ebca6b))>>>0;
+        hash^=hash>>>16;hash=Math.imul(hash,0x7feb352d);hash^=hash>>>15;
+        if(options.length)pos=options[(hash>>>0)%options.length];
+      }
+      used.add(coord(pos));
+      return {id:`${kind}-${label}`,kind,x:pos.x,y:pos.y,hp,maxHp:hp,lastKnown:(kind==='skitter'||kind==='heart')?{x:1,y:6}:null};
+    });
+  }
+  function newGame(seed=0){
+    seed=Number.isSafeInteger(seed)&&seed>=0&&seed<=0xffffffff?seed:0;
+    return {
+    version:3,seed,phase:'player',turn:1,ap:MAX_AP,roomIndex:0,relics:[],ward:0,
     walls:copy(CHAMBERS[0].walls),
     player:{x:1,y:6,hp:MAX_HP,maxHp:MAX_HP,facing:'E',lantern:true},
-    enemies:spawnEnemies(0)
+    enemies:spawnEnemies(0,seed)
   };}
   function beamCells(s){
     if(!s.player.lantern)return [];
@@ -171,7 +190,7 @@
       s.roomIndex++;
       if(s.roomIndex>=CHAMBERS.length)return invalid('No chambers remain.');
       s.walls=copy(CHAMBERS[s.roomIndex].walls);
-      s.enemies=spawnEnemies(s.roomIndex);
+      s.enemies=spawnEnemies(s.roomIndex,s.seed||0);
       Object.assign(s.player,{x:1,y:6,facing:'E',lantern:true});
       if(s.relics.includes('pilgrim'))s.player.hp=Math.min(s.player.maxHp,s.player.hp+1);
       s.ward=s.relics.includes('ashward')?1:0;
@@ -213,6 +232,7 @@
   // Save files are user-controlled local data. Validate before restoring to avoid corrupt runs.
   function loadable(s){
     if(!s||s.version!==3||!Number.isInteger(s.roomIndex)||s.roomIndex<0||s.roomIndex>=CHAMBERS.length)return false;
+    if(s.seed!==undefined&&(!Number.isSafeInteger(s.seed)||s.seed<0||s.seed>0xffffffff))return false;
     if(!['player','reward'].includes(s.phase)||!Number.isSafeInteger(s.turn)||s.turn<1)return false;
     if(!Number.isInteger(s.ap)||s.ap<0||s.ap>MAX_AP)return false;
     if(!Array.isArray(s.walls)||JSON.stringify(s.walls)!==JSON.stringify(CHAMBERS[s.roomIndex].walls))return false;
@@ -222,7 +242,7 @@
     if(!p||!Number.isInteger(p.x)||!Number.isInteger(p.y)||!passable(p,s)||!Object.hasOwn(DIRECTIONS,p.facing)||typeof p.lantern!=='boolean')return false;
     if(!Number.isInteger(p.maxHp)||p.maxHp!==MAX_HP+(s.relics.includes('starheart')?1:0))return false;
     if(!Number.isInteger(p.hp)||p.hp<=0||p.hp>p.maxHp)return false;
-    const template=spawnEnemies(s.roomIndex);
+    const template=spawnEnemies(s.roomIndex,s.seed||0);
     if(!Array.isArray(s.enemies)||s.enemies.length!==template.length)return false;
     const occupiedPositions=new Set([coord(p)]);
     for(let i=0;i<template.length;i++){
@@ -236,10 +256,10 @@
     if(s.phase==='player' && s.enemies.every(e=>e.hp===0))return false;
     return true;
   }
-  function makeSession(){return {state:newGame(),history:[],lastEvents:[],message:'Find the light. Master the dark.'};}
+  function makeSession(seed=0){return {state:newGame(seed),history:[],lastEvents:[],message:'Find the light. Master the dark.'};}
   function dispatch(session,action){
     if(action.type==='RESTART'){
-      session.state=newGame();session.history=[];
+      session.state=newGame(action.seed===undefined?(session.state.seed||0):action.seed);session.history=[];
       session.lastEvents=[{type:'restart'}];session.message='A new light burns.';
       return true;
     }
