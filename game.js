@@ -30,6 +30,10 @@ function randomSeed(){
   }catch{}
   return Date.now()>>>0||1;
 }
+function prefillSharedSeed(){
+ const match=/(?:\\?|&)seed=(\\d{1,10})(?:&|$)/.exec(window.location?.search||'');
+ if(match&&Number(match[1])<=0xffffffff)$('seedInput').value=match[1];
+}
 function chosenSeed(){
  const raw=String($('seedInput').value||'').trim();
  return /^\d+$/.test(raw)&&Number(raw)<=0xffffffff?Number(raw):randomSeed();
@@ -284,10 +288,12 @@ canvas.addEventListener('pointermove',moveHover);canvas.addEventListener('pointe
 $('rewardOptions').addEventListener('click',ev=>{const btn=ev.target.closest('[data-relic]');if(btn)onAction({type:'CHOOSE_RELIC',id:btn.dataset.relic});});
 $('seedCopyBtn').addEventListener('click',()=>{
  const seed=String(session.state.seed||0);
- const onCopy=()=>{session.message=`Seed ${seed} copied. Enter it on the title screen to replay the layout.`;updateHUD();};
+ const base=window.location?.protocol==='https:'?`${window.location.origin}${window.location.pathname}?seed=${seed}`:null;
+ const share=base||seed;
+ const onCopy=()=>{session.message=`Challenge ${seed} copied. Share it to replay the same layout.`;updateHUD();};
  const fallback=()=>{session.message=`Challenge seed: ${seed}. Enter it on the title screen to replay.`;updateHUD();};
  if(window.navigator?.clipboard?.writeText){
-  window.navigator.clipboard.writeText(seed).then(onCopy).catch(fallback);
+  window.navigator.clipboard.writeText(share).then(onCopy).catch(fallback);
  }else fallback();
 });
 $('continueBtn').addEventListener('click',continueRun);
@@ -310,5 +316,5 @@ window.addEventListener('keydown',ev=>{
  else if(k==='enter'){ev.preventDefault();onAction({type:'END_TURN'});}
  else if(k==='r'){restart();}
 });
-updateContinue();updateRecordLine();updateHUD();requestAnimationFrame(drawFrame);
+prefillSharedSeed();updateContinue();updateRecordLine();updateHUD();requestAnimationFrame(drawFrame);
 })();
