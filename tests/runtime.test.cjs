@@ -141,3 +141,21 @@ test('invalid out-of-range challenge URLs do not override default seed input',()
  const store=new Map(),ui=boot(store,{search:'?seed=999999999999'});
  assert.equal(ui.elements.seedInput.value,'0');
 });
+
+test('restart confirmation protects an active saved run until approved',()=>{
+ const store=new Map(),ui=boot(store);
+ ui.handlers['startBtn:click']();
+ ui.handlers['strikeBtn:click']();
+ const before=store.get('lumenfall-run-v3');
+ ui.handlers['replayBtn:click']();
+ assert.equal(ui.elements.restartDialog.open,true);
+ ui.handlers['window:keydown']({key:'ArrowUp',shiftKey:false,preventDefault(){}});
+ assert.equal(store.get('lumenfall-run-v3'),before,'controls must not change state under dialog');
+ ui.handlers['cancelRestartBtn:click']();
+ assert.equal(ui.elements.restartDialog.open,false);
+ assert.equal(store.get('lumenfall-run-v3'),before);
+ ui.handlers['replayBtn:click']();
+ ui.handlers['confirmRestartBtn:click']();
+ assert.equal(ui.elements.restartDialog.open,false);
+ assert.deepEqual(JSON.parse(store.get('lumenfall-run-v3')).state,C.newGame());
+});
