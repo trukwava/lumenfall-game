@@ -8,10 +8,10 @@ const game=fs.readFileSync(path.join(root,'game.js'),'utf8');
 const style=fs.readFileSync(path.join(root,'style.css'),'utf8');
 
 test('HTML loads matching cache-pinned assets in correct dependency order',()=>{
- const files=[...html.matchAll(/(?:href|src)="(style\\.css|core\\.js|game\\.js)\\?v=([0-9.]+)"/g)];
+ const files=[...html.matchAll(/(?:href|src)="(style\.css|core\.js|game\.js)\?v=([0-9.]+)"/g)];
  assert.deepEqual(files.map(m=>m[1]),['style.css','core.js','game.js']);
  assert.equal(new Set(files.map(m=>m[2])).size,1,'all assets must use the same cache version');
- assert.match(html,new RegExp('name="lumenfall-build" content="'+files[0][2].replace(/\\./g,'\\\\.')+'"'));
+ assert.ok(html.includes('name="lumenfall-build" content="'+files[0][2]+'"'));
  assert.ok(html.indexOf('src="core.js')<html.indexOf('src="game.js'));
 });
 
