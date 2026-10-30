@@ -176,3 +176,21 @@ test('malformed stored personal-best record is ignored rather than displayed',()
  const ui=boot(store);
  assert.match(ui.elements.recordLine.textContent,/FIRST DESCENT/);
 });
+
+test('movement pad spends AP and disables blocked or unaffordable moves',()=>{
+ const store=new Map(),ui=boot(store);
+ ui.handlers['startBtn:click']();
+ assert.equal(ui.elements.moveS.disabled,false);
+ assert.equal(ui.elements.moveE.disabled,false);
+ ui.handlers['moveN:click']();
+ let s=JSON.parse(store.get('lumenfall-run-v3')).state;
+ assert.equal(s.player.y,5);assert.equal(s.ap,2);
+ ui.handlers['moveE:click']();
+ s=JSON.parse(store.get('lumenfall-run-v3')).state;
+ assert.equal(s.player.x,2);assert.equal(s.ap,1);
+ ui.handlers['moveN:click']();
+ s=JSON.parse(store.get('lumenfall-run-v3')).state;
+ assert.equal(s.player.y,4);assert.equal(s.ap,0);
+ assert.equal(ui.elements.moveN.disabled,true);
+ assert.equal(ui.elements.moveS.disabled,true);
+});
