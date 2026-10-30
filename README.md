@@ -61,6 +61,7 @@ Save validation rejects corrupted or incompatible game states. Browser privacy s
 - `tests/core.test.cjs`: core mechanics and intent-preview consistency
 - `tests/campaign.test.cjs`: chamber transitions, boss mechanics, relic effects, and save-state validation
 - `tests/interface.test.cjs`: static entrypoint and DOM integration checks
+- `tests/runtime.test.cjs`: dependency-free UI initialization, combat persistence, resume, and relic-screen interaction tests
 - `.github/workflows/tests.yml`: automated testing on commits and PRs
 
 ## Test
@@ -71,7 +72,7 @@ Node.js 20+:
 node --test tests/*.test.cjs
 ```
 
-**37/37 tests passed** against the current GitHub source in an independent JavaScript test harness. Syntax was also checked for all JavaScript source and test files. The GitHub Actions result and end-to-end browser playthrough have not been independently verified in this conversation; they should be checked before declaring release readiness.
+**40/40 checks passed** against the current GitHub source in an isolated JavaScript test harness, including runtime startup/resume simulations. Syntax was also checked for all JavaScript source and test files. The GitHub Actions result and end-to-end browser playthrough have not been independently verified in this conversation; they should be checked before declaring release readiness.
 
 ## Publish with GitHub Pages
 
