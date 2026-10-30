@@ -32,7 +32,7 @@ function randomSeed(){
 }
 function chosenSeed(){
  const raw=String($('seedInput').value||'').trim();
- return /^\\d+$/.test(raw)&&Number(raw)<=0xffffffff?Number(raw):randomSeed();
+ return /^\d+$/.test(raw)&&Number(raw)<=0xffffffff?Number(raw):randomSeed();
 }
 function getRecord(){try{return JSON.parse(localStorage.getItem(RECORD_KEY)||'null');}catch{return null;}}
 function recordVictory(s){
