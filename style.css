@@ -12,3 +12,7 @@
 .relic-card{min-height:60px}
 .relic-card:focus-visible{outline:2px solid #ffe2a6;outline-offset:-2px}
 @media(max-width:490px){.reward-content{max-height:100%;padding-top:6px;padding-bottom:6px}.relic-card{min-height:52px}.relic-symbol{font-size:24px}.reward-content p{font-size:12px}}
+
+/* Accessible, descriptive tactical state without shifting the illustrated board. */
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+@media(prefers-contrast:more){.panel,.relic-card,.action-button{border-color:#e9d0a8!important}button:focus-visible{outline:3px solid #fff1c9!important}.heart.empty,.muted{color:#abb4c6!important}}
