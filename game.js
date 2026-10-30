@@ -72,10 +72,11 @@ function updateHUD(){
  $('undoBtn').disabled=!session.history.length||s.phase!=='player';
  $('endBtn').disabled=s.phase!=='player';
  $('statusMessage').textContent=session.message;
- const pretty={skitter:'Skitter',watcher:'Watcher'},name=e=>pretty[e.kind]||'Shade';
+ const pretty={skitter:'Skitter',watcher:'Watcher',heart:'Eclipse Heart'},name=e=>pretty[e.kind]||'Shade';
  $('previewList').innerHTML=pr.events.filter(e=>e.type!=='newTurn').map(e=>{
    const enemy=s.enemies.find(q=>q.id===e.enemyId);if(!enemy)return '';
    if(e.type==='enemyAttack')return `<div class="intent ${e.blocked?'wait':'attack'}"><div class="intent-icon">${e.blocked?'◇':'✕'}</div><span><strong>${name(enemy)}</strong> ${e.blocked?'is blocked by Ash Ward':'strikes you for 1'}</span></div>`;
+   if(e.type==='heartPulse')return '';
    if(e.type==='enemyMove')return `<div class="intent"><div class="intent-icon">↗</div><span><strong>${name(enemy)}</strong> advances toward ${e.to.x+1},${e.to.y+1}</span></div>`;
    return `<div class="intent wait"><div class="intent-icon">◌</div><span><strong>${name(enemy)}</strong> holds position</span></div>`;
  }).join('')||'<div class="intent wait">No threats remain.</div>';
@@ -137,6 +138,16 @@ function drawWatcher(e,t){const c=centre(e),x=c.x,y=c.y;
  ctx.beginPath();ctx.moveTo(0,-20);ctx.lineTo(18,0);ctx.lineTo(0,20);ctx.lineTo(-18,0);ctx.closePath();ctx.fillStyle='#785273';ctx.fill();ctx.strokeStyle='#e1a2bb';ctx.stroke();
  ctx.shadowColor='#ff9fb5';ctx.shadowBlur=17;diamond(0,0,11,'#e58ba8');diamond(0,0,5,'#ffe0de');ctx.restore();
 }
+function drawHeart(e,t){
+ const c=centre(e);glow(c.x,c.y,89,'rgba(227,91,167,.35)');
+ ctx.save();ctx.translate(c.x,c.y);ctx.rotate(motionOn?t*.27:0);
+ for(let i=0;i<8;i++){ctx.save();ctx.rotate(i*Math.PI/4);diamond(0,-30,8,'#b46cbe');ctx.restore();}
+ ctx.strokeStyle='#d9a5ea';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,28,0,TAU);ctx.stroke();
+ ctx.fillStyle='#1b112b';ctx.beginPath();ctx.arc(0,0,23,0,TAU);ctx.fill();
+ glow(0,0,30,'rgba(233,116,182,.6)');
+ diamond(0,0,17,'#b466a9');diamond(0,0,9,'#f2a9cb');
+ ctx.restore();
+}
 function drawPlayer(s,t){const p=s.player,c=centre(p),x=c.x,y=c.y;
  glow(x,y,39,'rgba(245,187,100,.23)');ctx.save();ctx.translate(x,y+(motionOn?Math.sin(t*2.2)*1:0));
  ctx.shadowBlur=13;ctx.shadowColor='#f4bd70';ctx.beginPath();ctx.ellipse(0,20,17,6,0,0,TAU);ctx.fillStyle='#04081680';ctx.fill();
@@ -182,7 +193,7 @@ function drawFrame(ts){const dt=Math.min((ts-lastFrame)/1000||0,.06);lastFrame=t
  drawBeam(session.state,t);
  for(const [x,y] of session.state.walls)wallTile({x,y});
  drawPreview(session.state);
- for(const e of session.state.enemies){if(e.hp<=0)continue;if(e.kind==='watcher')drawWatcher(e,t);else drawSkitter(e,t);enemyHP(e);}
+ for(const e of session.state.enemies){if(e.hp<=0)continue;if(e.kind==='heart')drawHeart(e,t);else if(e.kind==='watcher')drawWatcher(e,t);else drawSkitter(e,t);enemyHP(e);}
  drawPlayer(session.state,t);
  drawHover(session.state);
  drawParticles(dt);
