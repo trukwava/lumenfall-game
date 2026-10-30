@@ -7,9 +7,9 @@ const finishRoom=(s)=>{
  n.player.x=1;n.player.y=6;n.player.facing='E';n.player.lantern=true;n.ap=3;
  return C.reducer(n,{type:'STRIKE'});
 };
-test('four authored chambers are valid and have distinct wall arrangements',()=>{
- assert.equal(C.CHAMBERS.length,4);
- assert.equal(new Set(C.CHAMBERS.map(c=>JSON.stringify(c.walls))).size,3);
+test('six authored chambers are valid and have distinct wall arrangements',()=>{
+ assert.equal(C.CHAMBERS.length,6);
+ assert.equal(new Set(C.CHAMBERS.map(c=>JSON.stringify(c.walls))).size,6);
  for(const c of C.CHAMBERS){
   for(const [kind,x,y] of c.enemies)assert.ok(!c.walls.some(([wx,wy])=>wx===x&&wy===y),kind);
   assert.ok(!c.walls.some(([x,y])=>x===1&&y===6));
@@ -56,7 +56,7 @@ test('unavailable relic or relic outside reward phase rejected',()=>{
  assert.equal(C.reducer(r,{type:'CHOOSE_RELIC',id:'invalid'}).changed,false);
  r.relics=['longwick'];assert.equal(C.reducer(r,{type:'CHOOSE_RELIC',id:'longwick'}).changed,false);
 });
-test('clearing third chamber offers a final relic, and fourth ends in victory',()=>{
+test('five relic interludes culminate in the sixth-room boss',()=>{
  const one=finishRoom(C.newGame()).state;
  const two=C.reducer(one,{type:'CHOOSE_RELIC',id:'longwick'}).state;
  const rewardTwo=finishRoom(two).state;
@@ -65,8 +65,12 @@ test('clearing third chamber offers a final relic, and fourth ends in victory',(
  assert.equal(three.ward,1);
  const finish=finishRoom(three);
  assert.equal(finish.state.phase,'reward');
- const boss=C.reducer(finish.state,{type:'CHOOSE_RELIC',id:'emberwell'}).state;
- assert.equal(boss.roomIndex,3);assert.equal(boss.enemies[0].kind,'heart');
+ let next=C.reducer(finish.state,{type:'CHOOSE_RELIC',id:'emberwell'}).state;
+ assert.equal(next.roomIndex,3);
+ next=C.reducer(finishRoom(next).state,{type:'CHOOSE_RELIC',id:'starheart'}).state;
+ assert.equal(next.roomIndex,4);
+ const boss=C.reducer(finishRoom(next).state,{type:'CHOOSE_RELIC',id:'brightsteel'}).state;
+ assert.equal(boss.roomIndex,5);assert.equal(boss.enemies[0].kind,'heart');
  const ending=C.copy(boss);
  ending.enemies[1].hp=0;ending.enemies[0].hp=1;ending.enemies[0].x=2;ending.enemies[0].y=6;
  const victory=C.reducer(ending,{type:'STRIKE'});
@@ -101,7 +105,7 @@ test('the first three chambers are clearable with legal actions',()=>{
 });
 
 test('boss pulse is previewed exactly and darkness disables ranged attacks',()=>{
- const s=C.newGame();s.roomIndex=3;s.walls=C.copy(C.CHAMBERS[3].walls);
+ const s=C.newGame();s.roomIndex=5;s.walls=C.copy(C.CHAMBERS[5].walls);
  s.enemies=[{id:'heart-a',kind:'heart',x:3,y:6,hp:5,maxHp:5,lastKnown:{x:1,y:6}}];
  s.player.x=1;s.player.y=6;s.turn=2;
  const p=C.preview(s),actual=C.enemyPhase(s);
@@ -110,4 +114,40 @@ test('boss pulse is previewed exactly and darkness disables ranged attacks',()=>
  assert.deepEqual(p.after,actual.state);
  s.player.lantern=false;
  assert.equal(C.preview(s).damage,0);
+});
+
+test('new relics have correct mechanical effects',()=>{
+ const one=finishRoom(C.newGame()).state;
+ const star=C.reducer(one,{type:'CHOOSE_RELIC',id:'starheart'}).state;
+ assert.equal(star.player.maxHp,7);assert.equal(star.player.hp,7);
+ const reinforced=C.reducer(one,{type:'CHOOSE_RELIC',id:'brightsteel'}).state;
+ reinforced.enemies[0].hp=0;reinforced.enemies[1].hp=0;
+ const watcher=reinforced.enemies[2];watcher.x=2;watcher.y=6;
+ const after=C.reducer(reinforced,{type:'STRIKE',targetId:watcher.id}).state;
+ assert.equal(after.enemies[2].hp,0);
+ const pilgrim=C.reducer(one,{type:'CHOOSE_RELIC',id:'pilgrim'}).state;
+ pilgrim.player.hp=3;
+ const healed=C.reducer(finishRoom(pilgrim).state,{type:'CHOOSE_RELIC',id:'longwick'}).state;
+ assert.equal(healed.player.hp,4);
+});
+test('saved state validator rejects tampering and accepts a valid run',()=>{
+ const s=C.newGame();
+ assert.equal(C.loadable(s),true);
+ const invalid=C.copy(s);invalid.player.x=3;invalid.player.y=1;
+ assert.equal(C.loadable(invalid),false);
+ const relic=C.copy(s);relic.relics=['brightsteel'];assert.equal(C.loadable(relic),false);
+ const reward=finishRoom(s).state;assert.equal(C.loadable(reward),true);
+ const advanced=C.reducer(reward,{type:'CHOOSE_RELIC',id:'starheart'}).state;
+ assert.equal(C.loadable(advanced),true);
+});
+test('each room transition preserves the campaign invariant',()=>{
+ let s=C.newGame();const picks=['longwick','ashward','emberwell','starheart','brightsteel'];
+ for(let room=0;room<C.CHAMBERS.length;room++){
+  assert.equal(s.roomIndex,room);
+  assert.equal(C.loadable(s),true);
+  const r=finishRoom(s);s=r.state;
+  if(room===C.CHAMBERS.length-1){assert.equal(s.phase,'won');break;}
+  assert.equal(s.phase,'reward');assert.equal(C.loadable(s),true);
+  s=C.reducer(s,{type:'CHOOSE_RELIC',id:picks[room]}).state;
+ }
 });
