@@ -36,3 +36,6 @@
 .restart-actions .gold-button{margin:0;min-width:185px}
 .restart-actions .plain-button{padding:15px 18px}
 @media(max-width:480px){.restart-actions{flex-direction:column;align-items:stretch}.restart-actions>*{width:100%}.restart-dialog{padding:20px}}
+
+.seed-error{min-height:0;max-width:320px;margin:0 auto 8px;color:#f5a5ad;font-size:11px;text-align:left}
+.seed-error:empty{display:none}
