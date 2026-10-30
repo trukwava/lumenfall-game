@@ -39,3 +39,13 @@
 
 .seed-error{min-height:0;max-width:320px;margin:0 auto 8px;color:#f5a5ad;font-size:11px;text-align:left}
 .seed-error:empty{display:none}
+
+/* Clear, touch-friendly movement pad, distinct from the lantern-aim buttons. */
+.move-grid button{background:#263b42;color:#b9ede0;border-color:#64998e77}
+.move-grid button:hover:not(:disabled){background:#325b59}
+.move-grid #moveN{grid-column:2;grid-row:1}
+.move-grid #moveW{grid-column:1;grid-row:2}
+.move-grid #moveS{grid-column:2;grid-row:2}
+.move-grid #moveE{grid-column:3;grid-row:2}
+.move-grid button:disabled{opacity:.27}
+@media(pointer:coarse){.direction-grid{width:124px;grid-template-columns:repeat(3,38px);grid-template-rows:repeat(2,38px);gap:4px}.direction-grid button{font-size:22px;min-width:38px;min-height:38px}}
