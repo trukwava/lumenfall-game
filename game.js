@@ -31,7 +31,7 @@ function randomSeed(){
   return Date.now()>>>0||1;
 }
 function prefillSharedSeed(){
- const match=/(?:\\?|&)seed=(\\d{1,10})(?:&|$)/.exec(window.location?.search||'');
+ const match=/(?:\?|&)seed=(\d{1,10})(?:&|$)/.exec(window.location?.search||'');
  if(match&&Number(match[1])<=0xffffffff)$('seedInput').value=match[1];
 }
 function chosenSeed(){
