@@ -31,6 +31,7 @@ function boot(){
   };
   return elements[id];
  }
+ element('seedInput');
  const document={
   getElementById(id){assert.ok(ids.has(id),'missing '+id);return element(id);},
   querySelector(){return element('css-query');},
