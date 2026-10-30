@@ -36,9 +36,17 @@ function prefillSharedSeed(){
 }
 function chosenSeed(){
  const raw=String($('seedInput').value||'').trim();
- return /^\d+$/.test(raw)&&Number(raw)<=0xffffffff?Number(raw):randomSeed();
+ if(raw==='')return randomSeed();
+ return /^\d+$/.test(raw)&&Number(raw)<=0xffffffff?Number(raw):null;
 }
-function getRecord(){try{return JSON.parse(localStorage.getItem(RECORD_KEY)||'null');}catch{return null;}}
+function getRecord(){
+ try{
+  const r=JSON.parse(localStorage.getItem(RECORD_KEY)||'null');
+  if(r&&Number.isSafeInteger(r.turns)&&r.turns>0&&Number.isInteger(r.hp)&&r.hp>=0&&
+     Number.isSafeInteger(r.seed)&&r.seed>=0&&r.seed<=0xffffffff)return r;
+ }catch{}
+ return null;
+}
 function recordVictory(s){
  if(s.phase!=='won')return;
  const previous=getRecord(),candidate={turns:s.turn,hp:s.player.hp,seed:s.seed||0};
@@ -298,7 +306,10 @@ function drawFrame(ts){const dt=Math.min((ts-lastFrame)/1000||0,.06);lastFrame=t
  ctx.restore();requestAnimationFrame(drawFrame);
 }
 function start(){
- session=C.makeSession(chosenSeed());particles=[];started=true;
+ const seed=chosenSeed();
+ if(seed===null){$('seedError').textContent='Use a whole number from 0 to 4,294,967,295.';return;}
+ $('seedError').textContent='';
+ session=C.makeSession(seed);particles=[];started=true;
  $('startOverlay').classList.remove('visible');$('resultOverlay').classList.remove('visible');$('rewardOverlay').classList.remove('visible');
  updateHUD();persistRun();playTone('toggleOn');
 }
@@ -311,7 +322,7 @@ function continueRun(){
  if(saved.phase==='reward')showReward();
  updateHUD();playTone('toggleOn');
 }
-function restart(){if(!started){start();return;}C.dispatch(session,{type:'RESTART',seed:chosenSeed()});particles=[];$('resultOverlay').classList.remove('visible');$('rewardOverlay').classList.remove('visible');updateHUD();persistRun();playTone('toggleOn');}
+function restart(){if(!started){start();return;}C.dispatch(session,{type:'RESTART',seed:chosenSeed()??randomSeed()});particles=[];$('resultOverlay').classList.remove('visible');$('rewardOverlay').classList.remove('visible');updateHUD();persistRun();playTone('toggleOn');}
 function requestRestart(){
  if(!started||session.state.phase==='won'||session.state.phase==='lost'){restart();return;}
  const dialog=$('restartDialog');
