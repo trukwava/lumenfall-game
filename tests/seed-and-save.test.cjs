@@ -39,10 +39,7 @@ test('1000 challenge seeds remain valid across all six authored chambers',()=>{
 test('seed zero is canonical and old version-3 saves without a seed remain loadable',()=>{
  const pristine=C.newGame();
  assert.equal(pristine.seed,0);
- assert.deepEqual(pristine.enemies,C.CHAMBERS[0].enemies.map(([kind,x,y,hp],i)=>{
-  const counts={}; // equivalent expected positions & health, not IDs
-  return pristine.enemies[i];
- }));
+ assert.deepEqual(pristine.enemies.map(e=>[e.kind,e.x,e.y,e.maxHp]),C.CHAMBERS[0].enemies);
  const legacy=C.copy(pristine);delete legacy.seed;
  assert.equal(C.loadable(legacy),true);
 });
