@@ -252,7 +252,7 @@
       if(e.hp>0){if(occupiedPositions.has(coord(e)))return false;occupiedPositions.add(coord(e));}
       if(e.lastKnown!==null&&e.lastKnown!==undefined&&(!Number.isInteger(e.lastKnown.x)||!Number.isInteger(e.lastKnown.y)||!inside(e.lastKnown)))return false;
     }
-    if(s.phase==='reward' && s.enemies.some(e=>e.hp>0))return false;
+    if(s.phase==='reward' && (s.roomIndex===CHAMBERS.length-1||s.enemies.some(e=>e.hp>0)))return false;
     if(s.phase==='player' && s.enemies.every(e=>e.hp===0))return false;
     return true;
   }
