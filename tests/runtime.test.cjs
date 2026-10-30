@@ -159,3 +159,20 @@ test('restart confirmation protects an active saved run until approved',()=>{
  assert.equal(ui.elements.restartDialog.open,false);
  assert.deepEqual(JSON.parse(store.get('lumenfall-run-v3')).state,C.newGame());
 });
+
+test('invalid challenge-seed input blocks new game until corrected',()=>{
+ const store=new Map(),ui=boot(store);
+ ui.elements.seedInput.value='not-a-number';
+ ui.handlers['startBtn:click']();
+ assert.equal(store.has('lumenfall-run-v3'),false);
+ assert.match(ui.elements.seedError.textContent,/whole number/);
+ ui.elements.seedInput.value='4294967295';
+ ui.handlers['startBtn:click']();
+ assert.equal(JSON.parse(store.get('lumenfall-run-v3')).state.seed,4294967295);
+ assert.equal(ui.elements.seedError.textContent,'');
+});
+test('malformed stored personal-best record is ignored rather than displayed',()=>{
+ const store=new Map([['lumenfall-personal-best-v1','{"turns":"unknown","hp":99,"seed":-1}']]);
+ const ui=boot(store);
+ assert.match(ui.elements.recordLine.textContent,/FIRST DESCENT/);
+});
