@@ -2,3 +2,13 @@
 
 /* Three-chamber campaign and relic interlude. */
 .reward-content{z-index:1;position:relative;width:min(90%,570px);text-align:center;padding:18px 12px}.reward-content h2{font-family:Georgia,serif;color:#f6dfb3;font-size:clamp(21px,3.2vw,34px);font-weight:400;letter-spacing:.06em;margin:16px 0 9px}.reward-content p{font-family:Georgia,serif;color:#c4bfb4;font-size:14px;line-height:1.5;margin:0 0 23px}.reward-options{display:flex;flex-direction:column;gap:11px}.relic-card{display:flex;align-items:center;gap:13px;min-height:70px;border:1px solid #d0ac6c63;background:linear-gradient(105deg,#363047ee,#171b2dea);color:#f5e4c5;padding:11px 16px;text-align:left}.relic-card:hover,.relic-card:focus-visible{border-color:#f4d6a0;background:linear-gradient(105deg,#554060,#262438);transform:translateY(-1px)}.relic-symbol{display:grid;place-items:center;flex:none;font-size:29px;width:37px;color:#f0c77f;text-shadow:0 0 12px #d9a55366}.relic-card strong{font-size:13px;letter-spacing:.12em;display:block;margin-bottom:4px}.relic-card small{font-size:11px;color:#c5b9b0;line-height:1.45;display:block}.relic-arrow{margin-left:auto;color:#e3c288;font-size:19px}@media(max-width:490px){.reward-content{width:96%;padding:10px 8px}.reward-content h2{margin:8px 0}.reward-content p{margin:0 0 11px}.relic-card{min-height:60px;padding:7px 9px}.relic-card small{font-size:10px}}
+
+/* Save/resume and taller relic interludes for a complete six-room descent. */
+[hidden]{display:none!important}
+.continue-button{margin-top:12px;background:linear-gradient(120deg,#393344,#504159,#393344);border-color:#c9a873;color:#f1d8ab}
+.continue-button:hover{background:#605071}
+.reward-content{max-height:100%;overflow-y:auto;overscroll-behavior:contain;scrollbar-color:#9f8256 #1c1b2c;padding-top:12px;padding-bottom:12px}
+.reward-options{gap:8px}
+.relic-card{min-height:60px}
+.relic-card:focus-visible{outline:2px solid #ffe2a6;outline-offset:-2px}
+@media(max-width:490px){.reward-content{max-height:100%;padding-top:6px;padding-bottom:6px}.relic-card{min-height:52px}.relic-symbol{font-size:24px}.reward-content p{font-size:12px}}
