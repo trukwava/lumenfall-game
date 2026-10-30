@@ -28,3 +28,11 @@
 .start-record{font-size:10px;font-weight:700;letter-spacing:.12em;color:#cfb88b;margin-top:13px}
 .start-content{max-height:100%;overflow:auto;overscroll-behavior:contain}
 @media(max-width:490px){.seed-picker{font-size:9px;gap:6px;margin-top:8px}.seed-input{padding:9px 10px;margin-bottom:9px}.start-record{font-size:9px;margin-top:8px}.start-content p{font-size:14px;line-height:1.45}.seed-copy{font-size:9px}}
+
+/* Non-destructive restart confirmation */
+.restart-dialog{width:min(92vw,520px)}
+.restart-dialog h2{margin:21px 0 12px}
+.restart-actions{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-top:24px}
+.restart-actions .gold-button{margin:0;min-width:185px}
+.restart-actions .plain-button{padding:15px 18px}
+@media(max-width:480px){.restart-actions{flex-direction:column;align-items:stretch}.restart-actions>*{width:100%}.restart-dialog{padding:20px}}
